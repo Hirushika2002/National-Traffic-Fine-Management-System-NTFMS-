@@ -1,6 +1,6 @@
 # 🚔 National Traffic Fine Management System (NTFMS)
 
-> **Assignment 1 — Information Security | Semester 6**  
+> **Assignment 1 — EC6207 Software Architecture | Semester 6**  
 > Software Architecture Document for the Sri Lanka Police Traffic Fine Digitalization Initiative
 
 ---
