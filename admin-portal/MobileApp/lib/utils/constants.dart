@@ -1,7 +1,11 @@
+import 'dart:io' show Platform;
+
 /// Constants and configuration for the NTFMS Mobile Application
 class AppConstants {
   // API Configuration
-  static const String apiBaseUrl = 'http://localhost:5000/api';
+  static final String apiBaseUrl = Platform.isAndroid
+      ? 'http://10.0.2.2:5000/api'
+      : 'http://localhost:5000/api';
   static const int apiTimeoutSeconds = 30;
 
   // Endpoints

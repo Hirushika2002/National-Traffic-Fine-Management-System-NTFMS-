@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/fine_model.dart';
 import '../services/api_service.dart';
 
@@ -223,14 +224,20 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Fine Payment'),
+        title: const Text(
+          'NTFMS PAYMENTS',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+            fontSize: 18,
+          ),
+        ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.blueAccent,
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -258,17 +265,20 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
                     onPressed: () {
                       setState(() => _showPaymentForm = true);
                     },
-                    icon: const Icon(Icons.payment),
-                    label: const Text('Proceed to Payment'),
+                    icon: const Icon(Icons.payment_outlined),
+                    label: const Text('PROCEED TO PAYMENT'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: const Color(0xFF10B981), // Emerald Green
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      elevation: 4,
+                      shadowColor: const Color(0xFF10B981).withOpacity(0.3),
                     ),
                   ),
 
                 // Payment form
                 if (_showPaymentForm) ...[
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   _buildPaymentForm(),
                 ],
 
@@ -276,8 +286,8 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
                 const SizedBox(height: 16),
                 TextButton.icon(
                   onPressed: _resetForm,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Start New Payment'),
+                  icon: const Icon(Icons.arrow_back),
+                  label: const Text('Back / Cancel Payment'),
                 ),
               ],
             ],
@@ -292,19 +302,39 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'NTFMS Mobile Payment',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Colors.blueAccent,
-          ),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+                ),
+              ),
+              child: Icon(
+                Icons.shield_outlined,
+                color: Theme.of(context).colorScheme.secondary,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Motorist Fine Portal',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.secondary,
+                    letterSpacing: 0.5,
+                  ),
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Text(
-          'Enter your fine reference number and category ID to proceed',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+          'Enter the fine reference number and category code from your traffic ticket to retrieve details and process instant payment.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                height: 1.5,
+              ),
         ),
       ],
     );
@@ -319,15 +349,10 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
           // Fine Reference Number field
           TextFormField(
             controller: _referenceNumberController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Fine Reference Number',
               hintText: 'e.g., TFM-2024-001234',
-              prefixIcon: const Icon(Icons.receipt),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              filled: true,
-              fillColor: Colors.grey[50],
+              prefixIcon: Icon(Icons.receipt_long_outlined),
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -345,15 +370,10 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
           // Category ID field
           TextFormField(
             controller: _categoryIdController,
-            decoration: InputDecoration(
-              labelText: 'Traffic Fine Category ID',
+            decoration: const InputDecoration(
+              labelText: 'Traffic Violation Category ID',
               hintText: 'e.g., SPEED001',
-              prefixIcon: const Icon(Icons.category),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              filled: true,
-              fillColor: Colors.grey[50],
+              prefixIcon: Icon(Icons.gavel_outlined),
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -369,24 +389,24 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
           const SizedBox(height: 24),
 
           // Fetch Fine button
-          ElevatedButton.icon(
-            onPressed: _isLoading ? null : _fetchFineDetails,
-            icon: _isLoading
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.white.withOpacity(0.7),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _isLoading ? null : _fetchFineDetails,
+              icon: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
-                    ),
-                  )
-                : const Icon(Icons.search),
-            label: Text(_isLoading ? 'Fetching...' : 'Fetch Fine Details'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueAccent,
-              padding: const EdgeInsets.symmetric(vertical: 14),
+                    )
+                  : const Icon(Icons.search_outlined),
+              label: Text(_isLoading ? 'RETRIEVING RECORD...' : 'LOOKUP FINE DETAILS'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
             ),
           ),
         ],
@@ -399,10 +419,8 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
     if (_fetchedFine == null) return const SizedBox.shrink();
 
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -411,43 +429,51 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Fine Details',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  'Fine Ticket Record',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 _buildStatusBadge(_fetchedFine!.status),
               ],
             ),
-            const Divider(height: 20),
+            const Divider(height: 28),
 
-            // Fine amount (highlighted)
+            // Fine amount (highlighted with gold border)
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange, width: 2),
+                color: Theme.of(context).colorScheme.secondary.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+                  width: 1.5,
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Fine Amount:',
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+                  Text(
+                    'TOTAL PENALTY AMOUNT:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      letterSpacing: 0.5,
+                      color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
+                    ),
                   ),
                   Text(
                     'Rs. ${_fetchedFine!.fineAmount.toStringAsFixed(2)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: Colors.orangeAccent,
+                      fontSize: 20,
+                      color: Theme.of(context).colorScheme.secondary,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
             // Violator information
             _buildDetailRow('Violator Name', _fetchedFine!.violatorName),
@@ -462,7 +488,6 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
             ),
 
             if (_fetchedFine!.locationDescription != null) ...[
-              const SizedBox(height: 8),
               _buildDetailRow(
                 'Location',
                 _fetchedFine!.locationDescription ?? '',
@@ -477,22 +502,26 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
   /// Build detail row for fine information
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
           ),
+          const SizedBox(width: 16),
           Flexible(
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
             ),
           ),
         ],
@@ -500,46 +529,44 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
     );
   }
 
-  /// Build status badge
+  /// Build status badge (Matches WebApp style)
   Widget _buildStatusBadge(String status) {
-    Color backgroundColor;
-    Color textColor;
+    Color color;
     IconData icon;
 
     switch (status.toLowerCase()) {
       case 'paid':
-        backgroundColor = Colors.green[100] ?? Colors.green;
-        textColor = Colors.green[700] ?? Colors.green;
-        icon = Icons.check_circle;
+        color = const Color(0xFF10B981); // Emerald
+        icon = Icons.check_circle_outline;
         break;
       case 'overdue':
-        backgroundColor = Colors.red[100] ?? Colors.red;
-        textColor = Colors.red[700] ?? Colors.red;
-        icon = Icons.warning;
+        color = const Color(0xFFEF4444); // Danger
+        icon = Icons.error_outline;
         break;
       default:
-        backgroundColor = Colors.amber[100] ?? Colors.amber;
-        textColor = Colors.amber[700] ?? Colors.amber;
-        icon = Icons.schedule;
+        color = const Color(0xFFF59E0B); // Amber
+        icon = Icons.schedule_outlined;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: color.withOpacity(0.12),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.25), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: textColor),
+          Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
           Text(
             status.toUpperCase(),
             style: TextStyle(
-              color: textColor,
+              color: color,
               fontWeight: FontWeight.bold,
-              fontSize: 12,
+              fontSize: 11,
+              letterSpacing: 0.5,
             ),
           ),
         ],
@@ -550,33 +577,36 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
   /// Build payment form
   Widget _buildPaymentForm() {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Card Payment Details',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Icon(
+                  Icons.lock_outline,
+                  color: Theme.of(context).colorScheme.secondary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Encrypted Card Payment',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
+            const Divider(height: 24),
 
             // Card number field
             TextFormField(
               controller: _cardNumberController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Card Number',
                 hintText: '1234 5678 9012 3456',
-                prefixIcon: const Icon(Icons.credit_card),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                filled: true,
-                fillColor: Colors.grey[50],
+                prefixIcon: Icon(Icons.credit_card_outlined),
               ),
               keyboardType: TextInputType.number,
               inputFormatters: [CardNumberFormatter()],
@@ -587,15 +617,10 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
             // Cardholder name field
             TextFormField(
               controller: _cardHolderController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Cardholder Name',
                 hintText: 'JOHN DOE',
-                prefixIcon: const Icon(Icons.person),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                filled: true,
-                fillColor: Colors.grey[50],
+                prefixIcon: Icon(Icons.person_outline),
               ),
               textCapitalization: TextCapitalization.characters,
               enabled: !_isPaymentProcessing,
@@ -609,14 +634,10 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
                 Expanded(
                   child: TextFormField(
                     controller: _expiryMonthController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'MM',
                       hintText: '12',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
+                      counterText: '',
                     ),
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
@@ -624,20 +645,16 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
                     enabled: !_isPaymentProcessing,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
 
                 // Expiry Year
                 Expanded(
                   child: TextFormField(
                     controller: _expiryYearController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'YY',
                       hintText: '25',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
+                      counterText: '',
                     ),
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
@@ -645,20 +662,16 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
                     enabled: !_isPaymentProcessing,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
 
                 // CVV
                 Expanded(
                   child: TextFormField(
                     controller: _cvvController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'CVV',
                       hintText: '123',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
+                      counterText: '',
                     ),
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
@@ -672,26 +685,30 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
             const SizedBox(height: 24),
 
             // Payment button
-            ElevatedButton.icon(
-              onPressed: _isPaymentProcessing ? null : _processPayment,
-              icon: _isPaymentProcessing
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.white.withOpacity(0.7),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isPaymentProcessing ? null : _processPayment,
+                icon: _isPaymentProcessing
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
-                      ),
-                    )
-                  : const Icon(Icons.check_circle),
-              label: Text(
-                _isPaymentProcessing ? 'Processing...' : 'Confirm Payment',
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                      )
+                    : const Icon(Icons.payment_outlined),
+                label: Text(
+                  _isPaymentProcessing ? 'AUTHORIZING TRANSACTION...' : 'CONFIRM SETTLEMENT',
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981), // Emerald Green
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 4,
+                  shadowColor: const Color(0xFF10B981).withOpacity(0.3),
+                ),
               ),
             ),
           ],
@@ -700,25 +717,29 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
     );
   }
 
-  /// Build error message widget
+  /// Build error message widget (Premium translucent styling)
   Widget _buildErrorMessage() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.red[50],
+        color: const Color(0xFFEF4444).withOpacity(0.12),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red, width: 1),
+        border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.25), width: 1),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.error_outline, color: Colors.red[700]),
+          const Icon(Icons.error_outline, color: Color(0xFFEF4444), size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               _errorMessage ?? '',
-              style: TextStyle(
-                color: Colors.red[700],
-                fontWeight: FontWeight.w500,
+              style: const TextStyle(
+                color: Color(0xFFEF4444),
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                height: 1.4,
               ),
             ),
           ),
@@ -727,25 +748,29 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
     );
   }
 
-  /// Build success message widget
+  /// Build success message widget (Premium translucent styling)
   Widget _buildSuccessMessage() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.green[50],
+        color: const Color(0xFF10B981).withOpacity(0.12),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.green, width: 1),
+        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.25), width: 1),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.check_circle_outline, color: Colors.green[700]),
+          const Icon(Icons.check_circle_outline, color: Color(0xFF10B981), size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               _successMessage ?? '',
-              style: TextStyle(
-                color: Colors.green[700],
-                fontWeight: FontWeight.w500,
+              style: const TextStyle(
+                color: Color(0xFF10B981),
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                height: 1.4,
               ),
             ),
           ),

@@ -1,14 +1,17 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'fine_model.dart';
+import 'dart:io' show Platform;
+import '../models/fine_model.dart';
 
 /// API Service Layer
 /// Handles all REST API communication with the backend for fine management
 class ApiService {
   // Base API URL - Configure this based on your backend environment
-  static const String baseUrl = 'http://localhost:5000/api';
-  static const String finesEndpoint = '$baseUrl/fines';
-  static const String paymentsEndpoint = '$baseUrl/payments';
+  static final String baseUrl = Platform.isAndroid
+      ? 'http://10.0.2.2:5000/api'
+      : 'http://localhost:5000/api';
+  static final String finesEndpoint = '$baseUrl/fines';
+  static final String paymentsEndpoint = '$baseUrl/payments';
 
   // HTTP timeout duration
   static const Duration timeoutDuration = Duration(seconds: 30);
@@ -21,7 +24,7 @@ class ApiService {
   ///
   /// Returns: FineModel containing complete fine details
   /// Throws: Exception if the fine is not found or API request fails
-  Future<FineModel> fetchFineDetails({
+  static Future<FineModel> fetchFineDetails({
     required String fineReferenceNumber,
     required String categoryId,
   }) async {
@@ -87,7 +90,7 @@ class ApiService {
   ///
   /// Returns: Map with payment response data including confirmation number
   /// Throws: Exception if payment processing fails
-  Future<Map<String, dynamic>> processPayment({
+  static Future<Map<String, dynamic>> processPayment({
     required String fineReferenceNumber,
     required String categoryId,
     required Map<String, dynamic> paymentDetails,
@@ -175,7 +178,7 @@ class ApiService {
 
     // Luhn algorithm implementation
     int sum = 0;
-    int isEven = false;
+    bool isEven = false;
 
     for (int i = cleanNumber.length - 1; i >= 0; i--) {
       int digit = int.parse(cleanNumber[i]);
