@@ -1,6 +1,8 @@
-# National Traffic Fine Management System (NTFMS) - Admin Portal
+# National Traffic Fine Management System (NTFMS) - Mobile Application
 
-A modern, responsive web application for managing traffic fines and violations in a centralized admin dashboard. Built with React and Vite, this portal provides law enforcement agencies with comprehensive tools to track, manage, and analyze traffic violations across multiple districts.
+The official cross-platform mobile application designed for motorists to perform quick, secure, and on-the-spot traffic fine settlements. Built with Flutter and Dart, this app allows drivers to enter fine reference details, process payments instantly, and trigger real-time notifications to traffic officers.
+
+**Branch:** `mobileApp` (Isolated from web application codebase)
 
 ---
 
@@ -8,434 +10,497 @@ A modern, responsive web application for managing traffic fines and violations i
 
 - [Features](#features)
 - [Tech Stack](#tech-stack)
-- [Installation](#installation)
-- [Getting Started](#getting-started)
+- [Prerequisites](#prerequisites)
+- [Installation & Setup](#installation--setup)
 - [Project Structure](#project-structure)
-- [Components Overview](#components-overview)
-- [Usage](#usage)
+- [Architecture & Design](#architecture--design)
+- [Key Components](#key-components)
+- [API Integration](#api-integration)
+- [Development Workflow](#development-workflow)
+- [Testing & Debugging](#testing--debugging)
 
 ---
 
 ## ✨ Features
 
-### 🔐 **Authentication & Security**
-- User login/logout functionality with session management
-- Secure authentication service integration
-- Session persistence and token management
-- Protected routes for authenticated users only
+### 💳 **On-the-Spot Payments**
+- **Instant Reference Lookup**: Drivers enter the unique fine reference number and fine category identifier.
+- **Real-Time Validation**: Immediate backend verification of fine details.
+- **Payment Processing**: Secure simulation for capturing payment information (credit/debit cards).
+- **Instant Confirmation**: Real-time verification loop with the central REST API.
 
-### 📊 **Dashboard**
-- **Real-time Metrics**
-  - Total revenue collection
-  - Total fines issued
-  - Pending cases
-  - Active monitoring indicators
-  
-- **Visual Analytics**
-  - Revenue trends with area charts
-  - District-wise performance comparison (bar charts)
-  - Fine category breakdown (pie charts)
-  - Monthly trend analysis
-  
-- **Key Performance Indicators (KPIs)**
-  - Total Amount: Comprehensive revenue overview
-  - Amount Collected: Actual collected revenue with percentage tracking
-  - Pending Cases: Outstanding fine counts
-  - Closure Rate: Efficiency metrics
-  
-- **Recent Fines Display**
-  - Latest issued fines preview
-  - Quick status overview
-
-### 📋 **Fines Management**
-- **Comprehensive Fine Listing**
-  - Search functionality (by fine details)
-  - Multi-field filtering:
-    - By District
-    - By Category
-    - By Status (Pending, Paid, Closed)
-    - By Date Range (Start & End Date)
-  
-- **Detailed Fine Information**
-  - Fine ID and violation details
-  - Violator information (Name, Phone, License)
-  - Location (District, GPS coordinates)
-  - Fine category and amount
-  - Status tracking
-  
-- **Payment Processing**
-  - Online payment simulation modal
-  - Credit card information capture
-  - Payment confirmation workflow
-  - Transaction status updates
-
-### 🏙️ **District Management**
-- **District Performance Tracking**
-  - View all districts with collection statistics
-  - Real-time data on:
-    - Total fines issued per district
-    - Total amount pending
-    - Amount collected
-    - Collection efficiency percentage
-  
-- **Search & Sorting**
-  - Search districts by name
-  - Dynamic sorting by multiple fields:
-    - Collected amount
-    - Total fines
-    - Efficiency rate
-  - Ascending/Descending order toggle
-
-### 🏷️ **Fine Categories Management**
-- **Category CRUD Operations**
-  - View all fine categories
-  - Add new violation categories
-  - Manage penalty information
-  
-- **Category Details**
-  - Category ID and Name
-  - Fine Amount
-  - Penalty Points
-  - Total fines in category
-  - Delete functionality
-
-- **Form Interface**
-  - Intuitive form for adding new categories
-  - Field validation
-  - Expandable/Collapsible form UI
-  - Error handling
+### 🔔 **Real-Time Notifications**
+- **Officer SMS Trigger**: Automatic SMS dispatch to the issuing officer's registered mobile upon successful payment.
+- **Digital Receipt**: Payment confirmation screen acts as proof of settlement.
+- **Transaction Tracking**: Confirmation number and transaction ID for reference.
 
 ### 🎨 **User Interface & Experience**
-- **Responsive Design**
-  - Fully responsive layout for desktop and tablet
-  - Adaptive components
-  - Mobile-friendly navigation
-  
-- **Theme Support**
-  - Dark mode and Light mode toggle
-  - Theme persistence in localStorage
-  - Dynamic CSS variable system
-  
-- **Navigation**
-  - Intuitive sidebar navigation
-  - Active tab highlighting
-  - User profile display
-  - Quick logout access
-  
-- **Visual Components**
-  - Icon-rich interface using Lucide React icons
-  - Interactive charts with Recharts library
-  - Loading states and animations
-  - Modal dialogs for detailed views
-  - Table layouts for data presentation
-
-### 📈 **Data Visualization**
-- **Charts & Graphs**
-  - Area charts for trend analysis
-  - Bar charts for district comparison
-  - Pie charts for category distribution
-  - Responsive chart containers
-  - Interactive tooltips and legends
-  
-- **Color-Coded Displays**
-  - Status indicators (Pending, Paid, Closed)
-  - Performance metrics with visual emphasis
-  - Harmonious color palette for data differentiation
-
-### 🔍 **Data Analysis & Reporting**
-- **Dashboard Metrics**
-  - Monthly trends and patterns
-  - District-wise collection analysis
-  - Category-wise breakdown
-  - Statistical summaries
-  
-- **Filtering & Querying**
-  - Advanced search capabilities
-  - Multi-criteria filtering
-  - Date range filtering
-  - Real-time data updates
-
-### ⚙️ **Additional Features**
-- **Session Management**
-  - Auto-checking of user authentication
-  - Secure logout functionality
-  - User data persistence
-  
-- **Error Handling**
-  - User-friendly error messages
-  - Validation feedback
-  - Loading indicators
-  
-- **Performance Optimization**
-  - API service abstraction
-  - Efficient state management
-  - Lazy loading where applicable
+- **Intuitive Forms**: Simple, error-validated input fields for stress-free roadside entry.
+- **Responsive Layout**: Optimized UI scaling for various Android and iOS screen sizes.
+- **Clear Visual States**: Loading spinners, success checkmarks, and error messages.
+- **Accessibility**: High contrast text, readable font sizes, and touch-friendly buttons.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Technology | Version | Purpose |
+| Technology | Purpose | Version |
 |-----------|---------|---------|
-| **React** | 19.2.6 | UI Framework |
-| **Vite** | 8.0.12 | Build Tool & Dev Server |
-| **Recharts** | 3.8.1 | Data Visualization |
-| **Lucide React** | 1.18.0 | Icon Library |
-| **React DOM** | 19.2.6 | DOM Rendering |
-| **ESLint** | 10.3.0 | Code Linting |
+| **Flutter** | Cross-Platform UI Framework | 3.x+ |
+| **Dart** | Programming Language | 3.x+ |
+| **Http** | REST API Client | ^1.1.0 |
+| **Dio** | Alternative HTTP Library | ^5.3.0 |
+| **Provider** | State Management (Optional) | ^6.0.0 |
+| **Material Design 3** | UI Design System | Included |
 
 ---
 
-## 📦 Installation
+## ⚙️ Prerequisites
 
-### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn package manager
+Ensure the following are installed on your development machine:
 
-### Setup Steps
+- **Flutter SDK**: v3.0.0 or higher
+  - Download from [flutter.dev](https://flutter.dev/docs/get-started/install)
+  - Verify installation: `flutter --version`
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd admin-portal
-   ```
+- **Dart SDK**: Automatically included with Flutter
+  - Verify: `dart --version`
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+- **Android Development**:
+  - Android Studio (for emulator and toolchain)
+  - Android SDK 21+ (minimum API level)
+  - Android Emulator or connected device
 
-3. **Verify installation**
-   ```bash
-   npm run lint
-   ```
+- **VS Code Extensions**:
+  - `Flutter` (by Dart Code) - Essential
+  - `Dart` (by Dart Code) - Essential
+  - `Dart Data Class Generator` (Optional, for model generation)
+
+- **Git**: For version control and branch management
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Installation & Setup
 
-### Development Server
+### Step 1: Set Up Flutter Project
 
-Start the development server with hot module replacement:
-
-```bash
-npm run dev
-```
-
-The application will be available at `http://localhost:5173` (default Vite port)
-
-**Note:** Current build script has an issue. Use `npm run dev` for development.
-
-### Build for Production
+If initializing this folder for the first time:
 
 ```bash
-npm run build
+# Navigate to the MobileApp directory
+cd MobileApp
+
+# Create Flutter project with organizational identifier
+flutter create . --org lk.gov.ntfms --project-name ntfms_mobile
 ```
 
-Generated files will be in the `dist/` directory.
-
-### Preview Production Build
+### Step 2: Install Dependencies
 
 ```bash
-npm run preview
+# Fetch all dependencies from pubspec.yaml
+flutter pub get
+
+# Verify all packages are installed
+flutter pub get
 ```
 
-### Linting
+### Step 3: Configure Your IDE
 
-Check code quality:
+1. Open VS Code
+2. Open the entire **admin-portal** workspace folder
+3. Navigate to `MobileApp/lib/main.dart`
+4. Verify Dart Analysis shows no errors
 
+### Step 4: Launch the Application
+
+**On Emulator:**
 ```bash
-npm run lint
+# List available emulators
+flutter emulators
+
+# Launch default emulator
+flutter emulators --launch Pixel_4_API_30
+
+# Run the app (from MobileApp directory)
+flutter run
 ```
+
+**On Physical Device:**
+```bash
+# Enable USB Debugging on your Android/iOS device
+# Connect device via USB
+
+# List connected devices
+flutter devices
+
+# Run the app
+flutter run -d <device-id>
+```
+
+**From VS Code:**
+- Press `F5` to start debugging
+- Or press `Ctrl+F5` to run without debugging
 
 ---
 
 ## 📁 Project Structure
 
 ```
-admin-portal/
-├── public/                 # Static assets
-├── src/
-│   ├── assets/            # Images, fonts, etc.
-│   ├── components/        # React components
-│   │   ├── Categories.jsx # Fine category management
-│   │   ├── Dashboard.jsx  # Main dashboard with analytics
-│   │   ├── Districts.jsx  # District performance tracking
-│   │   ├── FinesList.jsx  # Fines listing and filtering
-│   │   ├── Login.jsx      # Authentication UI
-│   │   └── Sidebar.jsx    # Navigation sidebar
+MobileApp/
+├── lib/
+│   ├── main.dart                      # Application entry point
+│   ├── models/
+│   │   └── fine_model.dart            # Data model for fine details
+│   ├── screens/
+│   │   └── fine_payment_screen.dart   # Main payment UI screen
 │   ├── services/
-│   │   └── api.js         # API service & mock data
-│   ├── App.jsx            # Root application component
-│   ├── App.css            # Global application styles
-│   ├── main.jsx           # Application entry point
-│   └── index.css          # Base styles
-├── eslint.config.js       # ESLint configuration
-├── vite.config.js         # Vite configuration
-├── package.json           # Project dependencies
-├── README.md              # This file
-└── index.html             # HTML entry point
+│   │   └── api_service.dart           # REST API communication layer
+│   └── utils/
+│       └── constants.dart             # App constants and utilities
+├── pubspec.yaml                       # Flutter dependencies & configuration
+├── pubspec.lock                       # Locked dependency versions
+├── .gitignore                         # Git ignore rules
+├── android/                           # Android native code
+├── ios/                               # iOS native code
+├── test/                              # Unit tests
+└── README.md                          # This file
 ```
 
 ---
 
-## 🧩 Components Overview
+## 🏗️ Architecture & Design
 
-### **Login.jsx**
-User authentication component with credentials validation and session establishment.
+### **Clean Architecture Principles**
 
-**Features:**
-- Email/Username input
-- Password authentication
-- Login error handling
-- Session creation
+The project follows clean code architecture with clear separation of concerns:
 
-### **Sidebar.jsx**
-Main navigation component with theme toggle and user menu.
+```
+┌─────────────────────┐
+│   UI Layer          │  (fine_payment_screen.dart)
+│   (Flutter Widgets) │
+└──────────┬──────────┘
+           │
+┌──────────▼──────────┐
+│  Business Logic     │  (State Management, Validation)
+└──────────┬──────────┘
+           │
+┌──────────▼──────────┐
+│  Service Layer      │  (api_service.dart)
+│  (API Integration)  │
+└──────────┬──────────┘
+           │
+┌──────────▼──────────┐
+│  Data Layer         │  (Models, API Responses)
+│  (fine_model.dart)  │
+└─────────────────────┘
+```
 
-**Features:**
-- Navigation links to all sections
-- Active tab highlighting
-- User profile display
-- Theme toggle (Dark/Light mode)
-- Logout button
+### **State Management Pattern**
 
-### **Dashboard.jsx**
-Central analytics and reporting dashboard with comprehensive metrics and visualizations.
-
-**Features:**
-- KPI cards with key metrics
-- Monthly revenue trend chart
-- District-wise performance bar chart
-- Fine category distribution pie chart
-- Recent fines list
-- Real-time data updates
-
-### **FinesList.jsx**
-Complete fine management interface with advanced filtering and payment processing.
-
-**Features:**
-- Searchable fine listing
-- Multi-criteria filtering (district, category, status, date range)
-- Detailed fine modal view
-- Payment processing simulation
-- Status tracking
-- Contact information display
-
-### **Districts.jsx**
-District performance and collection statistics dashboard.
-
-**Features:**
-- District listing with statistics
-- Search by district name
-- Multi-field sorting (collections, total fines, efficiency)
-- Performance metrics display
-- Responsive table layout
-
-### **Categories.jsx**
-Fine category management interface with CRUD operations.
-
-**Features:**
-- View all categories
-- Add new fine categories
-- Category details (ID, name, amount, points)
-- Delete categories
-- Form validation
-- Category statistics
+- **StatefulWidget**: For local UI state management
+- **Provider (Optional)**: For global state sharing across screens
+- **Error Handling**: Comprehensive try-catch with user-friendly error messages
 
 ---
 
-## 📖 Usage
+## 🔑 Key Components
 
-### Logging In
+### 1. **FineModel** (`lib/models/fine_model.dart`)
 
-1. Navigate to the login page
-2. Enter your credentials
-3. Click "Login" to access the dashboard
+Data class representing fine information from the backend.
 
-### Viewing Dashboard
+**Key Fields:**
+- `fineReferenceNumber`: Unique ticket identifier
+- `categoryId`: Traffic violation category
+- `fineAmount`: Penalty amount
+- `violatorName` & `violatorLicenseNumber`: Driver details
+- `status`: Payment status (pending, paid, overdue)
 
-- **Dashboard Tab:** View all metrics, trends, and recent activity
-- **Metrics:** Scroll through key performance indicators
-- **Charts:** Interact with charts (hover for details, zoom, etc.)
+**Methods:**
+- `fromJson()`: Deserialize from API response
+- `toJson()`: Serialize for API requests
+- `copyWith()`: Create modified copies
 
-### Managing Fines
+### 2. **ApiService** (`lib/services/api_service.dart`)
 
-1. Go to **Fines List** section
-2. Use filters to find specific fines:
-   - Enter search term
-   - Select district
-   - Choose category
-   - Set status filter
-   - Select date range
-3. Click on a fine to view details
-4. Use **Pay** button to process payment (simulation)
+REST API integration layer with two core methods:
 
-### Analyzing Districts
+**`fetchFineDetails(fineReferenceNumber, categoryId)`**
+- GET request to retrieve fine information
+- Input validation
+- Error handling with descriptive messages
 
-1. Navigate to **Districts** section
-2. Search for specific district
-3. Sort by different metrics (collected, total, efficiency)
-4. View performance data
+**`processPayment(fineReferenceNumber, categoryId, paymentDetails)`**
+- POST request to process payment
+- Card number validation (Luhn algorithm)
+- Response parsing and SMS trigger confirmation
 
-### Managing Categories
+**Helper Methods:**
+- `isValidCardNumber()`: Luhn algorithm validation
+- `maskCardNumber()`: Secure display of card digits
 
-1. Go to **Categories** section
-2. View existing categories
-3. Click **Add New Category** to create:
-   - Enter Category ID
-   - Enter Category Name
-   - Set Fine Amount
-   - Set Penalty Points
-4. Delete categories as needed
+### 3. **FinePaymentScreen** (`lib/screens/fine_payment_screen.dart`)
 
-### Toggling Theme
+Main Flutter StatefulWidget with complete UI and business logic.
 
-- Click the theme toggle button in the sidebar
-- Current theme preference is saved automatically
+**Workflows:**
+1. **Input Phase**: User enters reference number and category ID
+2. **Fetch Phase**: Backend lookup displays fine details
+3. **Payment Phase**: Modal form for card details
+4. **Confirmation Phase**: Success/error feedback
 
----
-
-## 🔐 Security Considerations
-
-- Session validation on app load
-- Protected authenticated routes
-- Secure logout functionality
-- Data isolation between user sessions
-- Payment processing simulation (educational purposes)
+**UI Components:**
+- Form fields with validation
+- Card details section with automatic formatting
+- Status badges (pending/paid/overdue)
+- Loading and error states
+- Success confirmation
 
 ---
 
-## 🎯 Future Enhancements
+## 🌐 API Integration
 
-- Real backend API integration
-- Actual payment gateway integration
-- Real-time notifications
-- Advanced reporting features
-- Bulk operations
-- Export functionality (CSV, PDF)
-- Role-based access control (RBAC)
-- Two-factor authentication
+### Base URL Configuration
+
+Edit `lib/services/api_service.dart`:
+```dart
+static const String baseUrl = 'http://localhost:5000/api';
+```
+
+### Expected API Endpoints
+
+#### **1. Fetch Fine Details**
+```
+GET /api/fines?referenceNumber=TFM-2024-001&categoryId=SPEED001
+
+Response (200 OK):
+{
+  "data": {
+    "fineReferenceNumber": "TFM-2024-001",
+    "categoryId": "SPEED001",
+    "fineAmount": 5000.00,
+    "violatorName": "John Doe",
+    "violatorLicenseNumber": "BL123456",
+    "violationType": "Exceeding Speed Limit",
+    "issuedDate": "2024-06-10T14:30:00Z",
+    "status": "pending",
+    "locationDescription": "Colombo Main Road"
+  }
+}
+
+Response (404 Not Found):
+{
+  "error": "Fine not found"
+}
+```
+
+#### **2. Process Payment**
+```
+POST /api/payments
+
+Request Body:
+{
+  "fineReferenceNumber": "TFM-2024-001",
+  "categoryId": "SPEED001",
+  "paymentMethod": "card",
+  "amount": 5000.00,
+  "cardDetails": {
+    "cardNumber": "4111111111111111",
+    "cardHolderName": "JOHN DOE",
+    "expiryMonth": "12",
+    "expiryYear": "25",
+    "cvv": "123"
+  },
+  "timestamp": "2024-06-14T10:15:00Z"
+}
+
+Response (200 OK):
+{
+  "success": true,
+  "message": "Payment processed successfully",
+  "confirmationNumber": "CONF-2024-001234",
+  "transactionId": "TXN-2024-5678",
+  "smsStatus": "sent"
+}
+
+Response (409 Conflict):
+{
+  "error": "This fine has already been paid"
+}
+```
 
 ---
 
-## 📝 License
+## 💻 Development Workflow
 
-This project is part of an academic curriculum for Information Security studies.
+### Adding New Features
+
+1. **Create Model Classes** (if needed)
+   ```bash
+   # Add to lib/models/
+   ```
+
+2. **Add API Methods**
+   ```dart
+   // In lib/services/api_service.dart
+   Future<SomeModel> newApiMethod() async {
+     try {
+       // Implementation
+     } catch (e) {
+       throw Exception('Error: $e');
+     }
+   }
+   ```
+
+3. **Create UI Screen**
+   ```dart
+   // In lib/screens/
+   class NewScreen extends StatefulWidget {
+     // Implementation
+   }
+   ```
+
+4. **Wire Navigation**
+   ```dart
+   // In lib/main.dart routes
+   '/newRoute': (context) => const NewScreen(),
+   ```
+
+### Code Standards
+
+- **Dart Style Guide**: Follow [Effective Dart](https://dart.dev/guides/language/effective-dart)
+- **Comments**: Use `///` for public documentation
+- **Error Handling**: Always include try-catch blocks in async operations
+- **Null Safety**: Use non-null assertions carefully, prefer null-coalescing
+- **Widget Naming**: Suffix all Widgets with `Widget` or screen name
 
 ---
 
-## 👥 Contributors
+## 🧪 Testing & Debugging
 
-National Traffic Fine Management System - Admin Portal  
-Semester 6 - Information Security Project
+### Debug Mode
+```bash
+flutter run -v  # Verbose logging
+```
+
+### Hot Reload
+```bash
+# While app is running, press 'r' in terminal to hot reload
+# Preserves app state, updates code changes instantly
+```
+
+### Debugging in VS Code
+
+1. Set breakpoints by clicking left of line numbers
+2. Press `F5` to start debugging
+3. Use Debug Console to inspect variables
+4. Press `F10` (Step Over) or `F11` (Step Into)
+
+### Logcat Monitoring
+```bash
+flutter logs
+```
+
+### Device Logs
+```bash
+adb logcat | grep flutter
+```
+
+### Common Issues & Solutions
+
+| Issue | Solution |
+|-------|----------|
+| Device not detected | Enable USB Debugging on device |
+| Dependency conflict | Run `flutter pub get --offline` or `flutter clean` |
+| Hot reload fails | Do full rebuild with `flutter run` |
+| API connection fails | Check baseUrl in `api_service.dart` |
+| Payment validation error | Verify card format and expiry date |
 
 ---
 
-## 📞 Support
+## 📦 Dependency Management
 
-For issues, questions, or suggestions, please contact your course instructor or project coordinator.
+### Adding New Package
+
+```bash
+flutter pub add package_name
+```
+
+### Updating Packages
+
+```bash
+flutter pub upgrade
+```
+
+### Checking for Vulnerabilities
+
+```bash
+flutter pub outdated
+```
 
 ---
 
-**Happy Traffic Management! 🚓**
+## 🔒 Security Considerations
+
+1. **Card Details**:
+   - Never log sensitive card information
+   - Use HTTPS for all API communication
+   - Consider PCI DSS compliance for production
+   - Mask card numbers in display (`**** **** **** 1111`)
+
+2. **API Keys**:
+   - Store in environment variables, not in code
+   - Use `.env` file (excluded from git)
+
+3. **Input Validation**:
+   - All user inputs validated client-side
+   - Server-side validation also required
+   - Prevent SQL injection via parameterized queries
+
+---
+
+## 📝 Git Workflow
+
+```bash
+# Create/switch to mobileApp branch
+git checkout -b mobileApp
+
+# Make changes
+git add .
+git commit -m "feat: add payment functionality"
+
+# Push to branch
+git push origin mobileApp
+
+# Create Pull Request to main (after web team review)
+```
+
+### Branch Rules
+- Keep `main` branch protected
+- Never commit sensitive data
+- Use `.gitignore` to exclude build artifacts
+- Include meaningful commit messages
+
+---
+
+## 📞 Support & Troubleshooting
+
+For issues specific to this project:
+1. Check existing Flutter documentation: [flutter.dev](https://flutter.dev)
+2. Review error messages in VS Code Problems panel
+3. Check `flutter doctor` for environment issues
+4. Review API response logs in Debug Console
+
+---
+
+## 📄 License & Attribution
+
+This is part of the National Traffic Fine Management System (NTFMS) - Academic Project.
+All rights reserved.
+
+**Last Updated:** June 2026
+
+---
+
+## 📁 Project Structure
+
