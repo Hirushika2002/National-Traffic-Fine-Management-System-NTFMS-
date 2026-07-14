@@ -12,8 +12,8 @@ export default function Districts() {
     loadDistrictData();
   }, []);
 
-  const loadDistrictData = () => {
-    const data = apiService.getDistrictWiseCollections();
+  const loadDistrictData = async () => {
+    const data = await apiService.getDistrictWiseCollections();
     setDistricts(data);
   };
 

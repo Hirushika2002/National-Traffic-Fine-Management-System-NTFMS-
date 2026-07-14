@@ -37,19 +37,21 @@ export default function Dashboard() {
   const [recentFines, setRecentFines] = useState([]);
   const [tickerEvents, setTickerEvents] = useState([]);
 
-  // Fetch all dashboard data from the simulated API
-  const loadDashboardData = () => {
-    const freshMetrics = apiService.getDashboardMetrics();
-    const freshDistricts = apiService.getDistrictWiseCollections().slice(0, 7); // Top 7 districts
-    const freshCategories = apiService.getCategoryBreakdown();
-    const freshTrends = apiService.getMonthlyTrend();
-    const freshFines = apiService.getFines().slice(0, 5); // 5 most recent
+  // Fetch all dashboard data from Firestore
+  const loadDashboardData = async () => {
+    const [freshMetrics, freshDistricts, freshCategories, freshTrends, freshFines] = await Promise.all([
+      apiService.getDashboardMetrics(),
+      apiService.getDistrictWiseCollections(),
+      apiService.getCategoryBreakdown(),
+      apiService.getMonthlyTrend(),
+      apiService.getFines(),
+    ]);
 
     setMetrics(freshMetrics);
-    setDistrictData(freshDistricts);
+    setDistrictData(freshDistricts.slice(0, 7)); // Top 7 districts
     setCategoryData(freshCategories);
     setTrendData(freshTrends);
-    setRecentFines(freshFines);
+    setRecentFines(freshFines.slice(0, 5)); // 5 most recent
   };
 
   useEffect(() => {
@@ -63,9 +65,9 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  // Simulates live traffic violations or payments to represent a busy national network
-  const simulateTrafficEvents = () => {
-    const categories = apiService.getCategories();
+  // Simulates live traffic events on the activity ticker (no Firestore writes — UI only)
+  const simulateTrafficEvents = async () => {
+    const categories = await apiService.getCategories();
     const districts = ['Colombo', 'Gampaha', 'Kandy', 'Galle', 'Kurunegala'];
     const officers = [
       { name: 'Sgt. Bandara', phone: '+94771234567' },
@@ -79,49 +81,26 @@ export default function Dashboard() {
     let newEvent = null;
 
     if (roll > 0.55) {
-      // 1. Simulate a new traffic fine issued by an officer on-the-spot
+      // Simulate a new traffic fine issued by an officer (ticker only, not written to Firestore)
       const randomCat = categories[Math.floor(Math.random() * categories.length)];
       const randomDistrict = districts[Math.floor(Math.random() * districts.length)];
       const randomOfficer = officers[Math.floor(Math.random() * officers.length)];
       const randomDriver = drivers[Math.floor(Math.random() * drivers.length)];
-      
-      const newFine = apiService.issueFine({
-        category: randomCat.id,
-        driverName: randomDriver,
-        driverLicense: 'B' + Math.floor(10000000 + Math.random() * 90000000),
-        vehicleNo: vehicles[Math.floor(Math.random() * vehicles.length)],
-        officerId: 'OF-' + Math.floor(1000 + Math.random() * 9000),
-        officerName: randomOfficer.name,
-        officerPhone: randomOfficer.phone,
-        district: randomDistrict,
-        location: `${randomDistrict} Highroad Sector`,
-        status: Math.random() > 0.7 ? 'Paid' : 'Pending' // Some pay on the spot
-      });
+      const isPaidOnSpot = Math.random() > 0.7;
 
       newEvent = {
         id: Math.random().toString(),
-        type: newFine.status === 'Paid' ? 'pay_spot' : 'issue',
-        title: newFine.status === 'Paid' ? 'On-the-spot Settlement' : 'New Fine Issued',
-        message: `${newFine.officerName} issued a LKR ${newFine.amount.toLocaleString()} ticket to ${newFine.driverName} in ${newFine.district} (${newFine.category}).`,
+        type: isPaidOnSpot ? 'pay_spot' : 'issue',
+        title: isPaidOnSpot ? 'On-the-spot Settlement' : 'New Fine Issued',
+        message: `${randomOfficer.name} issued a LKR ${randomCat.amount.toLocaleString()} ticket to ${randomDriver} in ${randomDistrict} (${randomCat.id}).`,
         time: new Date().toLocaleTimeString(),
-        highlight: newFine.status === 'Paid' ? 'success' : 'warning'
+        highlight: isPaidOnSpot ? 'success' : 'warning'
       };
     } else {
-      // 2. Simulate a motorist settling an existing pending fine online via web portal
-      const pendingFines = apiService.getFines({ status: 'Pending' });
+      // Simulate an online payment (ticker only)
+      const pendingFines = await apiService.getFines({ status: 'Pending' });
       if (pendingFines.length > 0) {
         const fineToPay = pendingFines[Math.floor(Math.random() * pendingFines.length)];
-        
-        apiService.payFine(fineToPay.refNo, {
-          cardNumber: '4111222233334444',
-          cardName: fineToPay.driverName,
-          expiry: '12/28',
-          cvv: '123'
-        }).then(res => {
-          // Re-load UI data
-          loadDashboardData();
-        }).catch(err => console.error(err));
-
         newEvent = {
           id: Math.random().toString(),
           type: 'pay_online',
@@ -135,7 +114,6 @@ export default function Dashboard() {
 
     if (newEvent) {
       setTickerEvents(prev => [newEvent, ...prev].slice(0, 10)); // Keep last 10
-      loadDashboardData();
     }
   };
 

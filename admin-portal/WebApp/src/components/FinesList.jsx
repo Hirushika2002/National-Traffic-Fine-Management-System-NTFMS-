@@ -38,7 +38,7 @@ export default function FinesList() {
   const [paying, setPaying] = useState(false);
   const [paymentSuccessMsg, setPaymentSuccessMsg] = useState('');
 
-  const loadData = () => {
+  const loadData = async () => {
     const filters = {
       search: searchTerm,
       district: selectedDistrict,
@@ -49,13 +49,16 @@ export default function FinesList() {
         end: endDate
       }
     };
-    const results = apiService.getFines(filters);
+    const results = await apiService.getFines(filters);
     setFines(results);
   };
 
   useEffect(() => {
-    setCategories(apiService.getCategories());
-    loadData();
+    const init = async () => {
+      setCategories(await apiService.getCategories());
+      await loadData();
+    };
+    init();
   }, [searchTerm, selectedDistrict, selectedCategory, selectedStatus, startDate, endDate]);
 
   const handleClearFilters = () => {
