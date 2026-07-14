@@ -13,6 +13,7 @@ import {
   lookupFine    as fbLookupFine,
   markFinePaid  as fbMarkFinePaid,
   getCategories as fbGetCategories,
+  getFinesByLicense as fbGetFinesByLicense,
 } from './firebaseService';
 
 // ── 25 Districts of Sri Lanka ──────────────────────────────────
@@ -157,4 +158,9 @@ export const apiService = {
    * Get all fine categories from Firestore.
    */
   getCategories: () => fbGetCategories(),
+
+  /**
+   * Get all fines associated with a driver's license number.
+   */
+  getFinesByLicense: (licenseNumber) => fbGetFinesByLicense(licenseNumber),
 };

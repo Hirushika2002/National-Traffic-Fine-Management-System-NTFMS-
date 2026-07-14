@@ -17,6 +17,8 @@ import {
   getDocs,
   updateDoc,
   Timestamp,
+  query,
+  where,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -142,3 +144,21 @@ export async function getCategories() {
   const snap = await getDocs(categoriesCol);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
+
+/**
+ * Fetch all fines associated with a driver's license number.
+ */
+export async function getFinesByLicense(licenseNumber) {
+  if (!licenseNumber || licenseNumber.trim() === '') return [];
+  const q = query(finesCol, where('driverLicense', '==', licenseNumber.trim().toUpperCase()));
+  const snap = await getDocs(q);
+  const list = snap.docs.map(d => {
+    return {
+      refNo: d.id,
+      ...normaliseFine(d.data())
+    };
+  });
+  list.sort((a, b) => new Date(b.issuedAt) - new Date(a.issuedAt));
+  return list;
+}
+

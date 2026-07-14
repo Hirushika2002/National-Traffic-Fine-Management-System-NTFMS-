@@ -41,6 +41,7 @@ class FirebaseService {
       status:               data['status']         as String? ?? 'Pending',
       locationDescription:  data['location']       as String?,
       officerContactNumber: data['officerPhone']   as String?,
+      vehicleNo:            data['vehicleNo']      as String? ?? '',
     );
   }
 

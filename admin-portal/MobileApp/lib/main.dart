@@ -1,75 +1,98 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'screens/login_screen.dart';
-import 'screens/fine_payment_screen.dart';
-import 'services/auth_service.dart';
+import 'screens/officer/officer_dashboard.dart';
+import 'screens/driver/driver_dashboard.dart';
+import 'presentation/viewmodels/auth_viewmodel.dart';
+import 'presentation/viewmodels/officer_dashboard_viewmodel.dart';
+import 'presentation/viewmodels/driver_dashboard_viewmodel.dart';
+import 'services/notification_service.dart';
 import 'utils/app_theme.dart';
+import 'data/repositories/auth_repository.dart';
 
-/// Main entry point for the NTFMS Mobile (Officer) Application
+/// Main Entry Point
 ///
-/// Firebase is initialised before the app runs.
-/// A StreamBuilder on [AuthService.authStateChanges] gates routing:
-///   - Not signed in → LoginScreen
-///   - Signed in     → FinePaymentScreen
+/// Registers Firebase services, configures ViewModel state providers,
+/// and sets up the app layout and default theme mode.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialise Firebase (shared project: ntfms2026)
+  // Initialise Firebase with platform configuration
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp(const NTFMSApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => OfficerDashboardViewModel()),
+        ChangeNotifierProvider(create: (_) => DriverDashboardViewModel()),
+      ],
+      child: const NTFMSApp(),
+    ),
+  );
 }
 
-/// Root application widget
+/// Root Widget
 class NTFMSApp extends StatelessWidget {
   const NTFMSApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NTFMS - Officer Portal',
+      title: 'NTFMS Portal',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark,
+      themeMode: ThemeMode.dark, // Default to Dark Theme Mode
       home: const _AuthGate(),
     );
   }
 }
 
-/// Reactive authentication gate.
-///
-/// Listens to Firebase auth state and navigates to the correct
-/// screen without requiring manual session checks.
-class _AuthGate extends StatelessWidget {
+/// Reactive Authentication and Role Gating Gate
+class _AuthGate extends StatefulWidget {
   const _AuthGate({Key? key}) : super(key: key);
 
   @override
+  State<_AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<_AuthGate> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize push notifications after widget is mounted
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationService.initialize(context);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: AuthService.authStateChanges,
-      builder: (context, snapshot) {
-        // Firebase is still resolving the persisted session
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const _SplashScreen();
-        }
+    final authVM = Provider.of<AuthViewModel>(context);
 
-        // User is signed in → show the fine payment (officer) screen
-        if (snapshot.hasData && snapshot.data != null) {
-          return const FinePaymentScreen();
-        }
+    // 1. If not authenticated, prompt to sign in
+    if (!authVM.isAuthenticated) {
+      return const LoginScreen();
+    }
 
-        // Not signed in → show login
-        return const LoginScreen();
-      },
-    );
+    // 2. Perform role-based navigation routing
+    switch (authVM.role) {
+      case UserRole.officer:
+        return const OfficerDashboard();
+      case UserRole.driver:
+        return const DriverDashboard();
+      default:
+        return const _SplashScreen(); // loading state
+    }
   }
 }
 
-/// Full-screen loading splash shown while Firebase resolves the session.
+/// App Initial Splash Loader Screen
 class _SplashScreen extends StatelessWidget {
   const _SplashScreen({Key? key}) : super(key: key);
 
@@ -97,7 +120,7 @@ class _SplashScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Connecting to NTFMS Network...',
+              'Routing portal session...',
               style: TextStyle(color: Colors.grey, fontSize: 13),
             ),
           ],

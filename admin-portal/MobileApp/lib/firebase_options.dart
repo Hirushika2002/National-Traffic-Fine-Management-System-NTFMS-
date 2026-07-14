@@ -37,12 +37,12 @@ class DefaultFirebaseOptions {
   //   android/app/google-services.json
   // Then change the appId below to match your Android app's appId.
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey:            'AIzaSyDQxa2ysMhzpPNTsbA2TKxXEFIiAETXxQQ',
+    apiKey:            'AIzaSyDkRLfpW_coMKyEOPlKFLqQRm49562BxHk',
     authDomain:        'ntfms2026.firebaseapp.com',
     projectId:         'ntfms2026',
     storageBucket:     'ntfms2026.firebasestorage.app',
     messagingSenderId: '395993702197',
-    appId:             '1:395993702197:web:01f1388c5697660784f67c', // Replace with Android appId
+    appId:             '1:395993702197:android:e08f72d342dba9fe84f67c',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
