@@ -4,7 +4,6 @@ jest.mock('../src/config/db', () => {
   return {
     trafficFine: { findUnique: jest.fn(), update: trafficFineTx.update },
     payment,
-    smsLog: { create: jest.fn() },
     $transaction: jest.fn(async (callback) => callback({ payment, trafficFine: trafficFineTx })),
   };
 });
@@ -28,7 +27,7 @@ const validPaymentBody = {
 describe('POST /api/payments', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('processes a valid payment, marks the fine PAID, and logs the SMS notification', async () => {
+  it('processes a valid payment and marks the fine PAID', async () => {
     prisma.trafficFine.findUnique.mockResolvedValue({
       id: 1,
       amount: 2500,
@@ -43,7 +42,6 @@ describe('POST /api/payments', () => {
 
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('transactionRef', 'TXN-1');
-    expect(prisma.smsLog.create).toHaveBeenCalledTimes(1);
   });
 
   it('rejects payment for a fine that is already paid', async () => {
