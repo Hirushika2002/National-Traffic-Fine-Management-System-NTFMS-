@@ -50,3 +50,19 @@ async function mockCreate(req, res, next) {
     next(err);
   }
 }
+
+async function getByDriverLicense(req, res, next) {
+  try {
+    const { licenseNo } = req.params;
+    const fines = await prisma.trafficFine.findMany({
+      where: { driverLicenseNo: licenseNo.toUpperCase() },
+      include: { officer: true, category: true, district: true },
+      orderBy: { issueDate: 'desc' },
+    });
+    res.status(200).json(fines);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { lookup, mockCreate, getByDriverLicense };
