@@ -1,6 +1,7 @@
 const prisma = require('../config/db');
 const { ApiError } = require('../middleware/errorHandler');
 const { generateTransactionRef } = require('../utils/refGenerator');
+const SmsService = require('./SmsService');
 
 const PRISMA_UNIQUE_CONSTRAINT_VIOLATION = 'P2002';
 
@@ -55,6 +56,12 @@ class PaymentService {
       }
       throw err;
     }
+
+    await SmsService.notifyOfficerOfPayment({
+      paymentId: payment.id,
+      officerPhone: fine.officer.phoneNo,
+      fine,
+    });
 
     return payment;
   }
