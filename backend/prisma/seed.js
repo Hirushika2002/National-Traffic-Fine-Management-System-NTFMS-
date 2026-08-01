@@ -35,6 +35,9 @@ async function main() {
   }
 
   console.log('Seeding sample officers...');
+  const officerPassword = process.env.SEED_OFFICER_PASSWORD || 'Officer123!';
+  const officerPasswordHash = await bcrypt.hash(officerPassword, 10);
+
   await prisma.officer.upsert({
     where: { badgeNo: 'SLP-0001' },
     update: {},
@@ -43,6 +46,7 @@ async function main() {
       fullName: 'W. K. Silva',
       phoneNo: '+94713807097',
       station: 'Colombo Fort Police Station',
+      passwordHash: officerPasswordHash,
       districtId: districts['Colombo'].id,
     },
   });
@@ -54,6 +58,7 @@ async function main() {
       fullName: 'R. M. Fernando',
       phoneNo: '+94713807097',
       station: 'Kandy City Police Station',
+      passwordHash: officerPasswordHash,
       districtId: districts['Kandy'].id,
     },
   });

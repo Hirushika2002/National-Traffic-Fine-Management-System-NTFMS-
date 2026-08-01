@@ -29,15 +29,17 @@ model FineCategory {
 }
 
 model Officer {
-  id        Int    @id @default(autoincrement())
-  badgeNo   String @unique @map("badge_no") @db.VarChar(50)
-  fullName  String @map("full_name") @db.VarChar(255)
-  phoneNo   String @map("phone_no") @db.VarChar(15)
-  station   String @db.VarChar(100)
-  districtId Int   @map("district_id")
+  id           Int     @id @default(autoincrement())
+  badgeNo      String  @unique @map("badge_no") @db.VarChar(50)
+  fullName     String  @map("full_name") @db.VarChar(255)
+  phoneNo      String  @map("phone_no") @db.VarChar(15)
+  station      String  @db.VarChar(100)
+  passwordHash String? @map("password_hash") @db.VarChar(255)
+  districtId   Int     @map("district_id")
 
   district District      @relation(fields: [districtId], references: [id])
   fines     TrafficFine[]
+  refreshTokens RefreshToken[]
 
   @@map("officers")
 }
@@ -95,8 +97,23 @@ model Admin {
   email        String @unique @db.VarChar(255)
   passwordHash String @map("password_hash") @db.VarChar(255)
   role         String @db.VarChar(50)
+  refreshTokens RefreshToken[]
 
   @@map("admins")
+}
+
+model RefreshToken {
+  id         Int      @id @default(autoincrement())
+  tokenHash  String   @map("token_hash") @db.VarChar(255) @unique
+  userType   String   @map("user_type") @db.VarChar(16)
+  admin      Admin?   @relation(fields: [adminId], references: [id])
+  adminId    Int?     @map("admin_id")
+  officer    Officer? @relation(fields: [officerId], references: [id])
+  officerId  Int?     @map("officer_id")
+  expiresAt  DateTime @map("expires_at")
+  revoked    Boolean  @default(false)
+
+  @@map("refresh_tokens")
 }
 
 enum SmsStatus {
