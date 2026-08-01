@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/fine_model.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
 
 /// Fine Payment Screen
 /// Main UI screen for drivers to enter fine details and process payment
@@ -225,7 +226,7 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'NTFMS PAYMENTS',
+          'NTFMS OFFICER PORTAL',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
@@ -234,6 +235,35 @@ class _FinePaymentScreenState extends State<FinePaymentScreen> {
         ),
         centerTitle: true,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout_outlined),
+            tooltip: 'Sign Out',
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Sign Out'),
+                  content: const Text('Are you sure you want to sign out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Sign Out', style: TextStyle(color: Colors.redAccent)),
+                    ),
+                  ],
+                ),
+              );
+              if (confirm == true) {
+                await AuthService.signOut();
+                // Auth gate in main.dart automatically routes back to LoginScreen
+              }
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(

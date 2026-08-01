@@ -1,7 +1,7 @@
 import React from 'react';
-import { Shield, Sun, Moon, ExternalLink } from 'lucide-react';
+import { Shield, Sun, Moon, LogIn, LogOut, User } from 'lucide-react';
 
-export default function Header({ theme, toggleTheme }) {
+export default function Header({ theme, toggleTheme, user, onLogin, onLogout }) {
   return (
     <header style={styles.header}>
       <div style={styles.container}>
@@ -14,7 +14,7 @@ export default function Header({ theme, toggleTheme }) {
             <h1 style={styles.title}>
               <span style={styles.titleAccent}>NTFMS</span>
               <span className="hide-mobile" style={styles.titleSep}>|</span>
-              <span className="hide-mobile" style={styles.titleSub}>Pay Your Fine Online</span>
+              <span className="hide-mobile" style={styles.titleSub}>Driver Portal</span>
             </h1>
             <p style={styles.subtitle}>Sri Lanka Police Department</p>
           </div>
@@ -22,16 +22,34 @@ export default function Header({ theme, toggleTheme }) {
 
         {/* Right — Actions */}
         <div style={styles.actions}>
-          <a
-            href="https://www.police.lk"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-ghost hide-mobile"
-            style={{ fontSize: '0.8rem', gap: '6px' }}
-          >
-            <ExternalLink size={14} />
-            Police.lk
-          </a>
+          {user ? (
+            <div style={styles.userProfile}>
+              {user.photoURL ? (
+                <img src={user.photoURL} alt="Profile" style={styles.avatar} />
+              ) : (
+                <div style={styles.avatarPlaceholder}><User size={14} /></div>
+              )}
+              <span className="hide-mobile" style={styles.userName}>{user.displayName || 'Motorist'}</span>
+              <button 
+                onClick={onLogout} 
+                className="btn btn-ghost" 
+                style={{ fontSize: '0.8rem', padding: '6px 10px', gap: '6px', color: 'var(--danger)' }}
+              >
+                <LogOut size={14} />
+                <span className="hide-mobile">Sign Out</span>
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={onLogin} 
+              className="btn btn-accent" 
+              style={{ fontSize: '0.8rem', padding: '6px 12px', gap: '6px' }}
+            >
+              <LogIn size={14} />
+              Sign In with Google
+            </button>
+          )}
+
           <button
             onClick={toggleTheme}
             className="btn btn-secondary"
@@ -98,37 +116,62 @@ const styles = {
     fontWeight: '800',
     letterSpacing: '0.02em',
     lineHeight: 1.2,
-    color: 'var(--text-main)',
   },
   titleAccent: {
-    color: 'var(--accent)',
-    letterSpacing: '0.08em',
+    color: 'var(--text-main)',
   },
   titleSep: {
-    color: 'var(--text-dark)',
-    fontWeight: '300',
+    color: 'var(--border-subtle)',
   },
   titleSub: {
-    fontWeight: '500',
-    fontSize: '0.85rem',
+    fontSize: '0.9rem',
     color: 'var(--text-muted)',
+    fontWeight: '500',
   },
   subtitle: {
-    fontSize: '0.7rem',
-    color: 'var(--text-dark)',
-    fontWeight: '500',
+    fontSize: '0.68rem',
+    fontWeight: '600',
+    color: 'var(--accent)',
     textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-    marginTop: '1px',
+    letterSpacing: '0.1em',
+    marginTop: '2px',
   },
   actions: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: '12px',
   },
   themeBtn: {
-    padding: '8px 12px',
-    fontSize: '0.85rem',
-    borderRadius: '8px',
+    padding: '6px 12px',
+    gap: '6px',
   },
+  userProfile: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    paddingRight: '6px',
+    borderRight: '1px solid var(--border-subtle)',
+  },
+  avatar: {
+    width: '28px',
+    height: '28px',
+    borderRadius: '50%',
+    objectFit: 'cover',
+    border: '1.5px solid var(--accent)',
+  },
+  avatarPlaceholder: {
+    width: '28px',
+    height: '28px',
+    borderRadius: '50%',
+    background: 'var(--border-subtle)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'var(--text-muted)',
+  },
+  userName: {
+    fontSize: '0.85rem',
+    fontWeight: '600',
+    color: 'var(--text-main)',
+  }
 };
