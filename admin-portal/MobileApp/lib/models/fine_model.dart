@@ -1,5 +1,5 @@
 /// Fine Data Model
-/// Maps incoming fine details from the REST API backend
+/// Maps incoming fine details from the Firestore and REST APIs
 class FineModel {
   final String fineReferenceNumber;
   final String categoryId;
@@ -8,9 +8,10 @@ class FineModel {
   final String violatorLicenseNumber;
   final String violationType;
   final DateTime issuedDate;
-  final String status; // 'pending', 'paid', 'overdue'
+  final String status; // 'Pending', 'Paid', 'Overdue'
   final String? locationDescription;
   final String? officerContactNumber;
+  final String vehicleNo;
 
   FineModel({
     required this.fineReferenceNumber,
@@ -23,26 +24,27 @@ class FineModel {
     required this.status,
     this.locationDescription,
     this.officerContactNumber,
+    this.vehicleNo = '',
   });
 
-  /// Factory constructor to create FineModel from JSON
-  /// This handles deserialization from the backend REST API response
+  /// Factory constructor to create FineModel from JSON/Map
   factory FineModel.fromJson(Map<String, dynamic> json) {
     return FineModel(
-      fineReferenceNumber: json['fineReferenceNumber'] as String? ?? '',
-      categoryId: json['categoryId'] as String? ?? '',
-      fineAmount: (json['fineAmount'] as num?)?.toDouble() ?? 0.0,
-      violatorName: json['violatorName'] as String? ?? '',
-      violatorLicenseNumber: json['violatorLicenseNumber'] as String? ?? '',
-      violationType: json['violationType'] as String? ?? '',
-      issuedDate: _parseDateTime(json['issuedDate']),
-      status: json['status'] as String? ?? 'pending',
-      locationDescription: json['locationDescription'] as String?,
-      officerContactNumber: json['officerContactNumber'] as String?,
+      fineReferenceNumber: json['fineReferenceNumber'] as String? ?? json['refNo'] as String? ?? '',
+      categoryId: json['categoryId'] as String? ?? json['category'] as String? ?? '',
+      fineAmount: (json['fineAmount'] as num?)?.toDouble() ?? (json['amount'] as num?)?.toDouble() ?? 0.0,
+      violatorName: json['violatorName'] as String? ?? json['driverName'] as String? ?? '',
+      violatorLicenseNumber: json['violatorLicenseNumber'] as String? ?? json['driverLicense'] as String? ?? '',
+      violationType: json['violationType'] as String? ?? json['category'] as String? ?? '',
+      issuedDate: _parseDateTime(json['issuedDate'] ?? json['issuedAt']),
+      status: json['status'] as String? ?? 'Pending',
+      locationDescription: json['locationDescription'] as String? ?? json['location'] as String?,
+      officerContactNumber: json['officerContactNumber'] as String? ?? json['officerPhone'] as String?,
+      vehicleNo: json['vehicleNo'] as String? ?? '',
     );
   }
 
-  /// Convert FineModel to JSON for API requests
+  /// Convert FineModel to JSON map
   Map<String, dynamic> toJson() {
     return {
       'fineReferenceNumber': fineReferenceNumber,
@@ -55,15 +57,17 @@ class FineModel {
       'status': status,
       'locationDescription': locationDescription,
       'officerContactNumber': officerContactNumber,
+      'vehicleNo': vehicleNo,
     };
   }
 
-  /// Parse datetime string from JSON
+  /// Parse datetime string or Timestamp
   static DateTime _parseDateTime(dynamic dateValue) {
+    if (dateValue == null) return DateTime.now();
     if (dateValue is String) {
       try {
         return DateTime.parse(dateValue);
-      } catch (e) {
+      } catch (_) {
         return DateTime.now();
       }
     }
@@ -82,19 +86,20 @@ class FineModel {
     String? status,
     String? locationDescription,
     String? officerContactNumber,
+    String? vehicleNo,
   }) {
     return FineModel(
       fineReferenceNumber: fineReferenceNumber ?? this.fineReferenceNumber,
       categoryId: categoryId ?? this.categoryId,
       fineAmount: fineAmount ?? this.fineAmount,
       violatorName: violatorName ?? this.violatorName,
-      violatorLicenseNumber:
-          violatorLicenseNumber ?? this.violatorLicenseNumber,
+      violatorLicenseNumber: violatorLicenseNumber ?? this.violatorLicenseNumber,
       violationType: violationType ?? this.violationType,
       issuedDate: issuedDate ?? this.issuedDate,
       status: status ?? this.status,
       locationDescription: locationDescription ?? this.locationDescription,
       officerContactNumber: officerContactNumber ?? this.officerContactNumber,
+      vehicleNo: vehicleNo ?? this.vehicleNo,
     );
   }
 }

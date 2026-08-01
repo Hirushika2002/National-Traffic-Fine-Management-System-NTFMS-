@@ -16,11 +16,11 @@ export default function Categories() {
     loadCategories();
   }, []);
 
-  const loadCategories = () => {
-    setCategories(apiService.getCategories());
+  const loadCategories = async () => {
+    setCategories(await apiService.getCategories());
   };
 
-  const handleAddCategory = (e) => {
+  const handleAddCategory = async (e) => {
     e.preventDefault();
     if (!newId || !newName || !newAmount) {
       alert('Please fill out all required fields.');
@@ -28,7 +28,7 @@ export default function Categories() {
     }
 
     try {
-      apiService.addCategory({
+      await apiService.addCategory({
         id: newId,
         name: newName,
         amount: newAmount,

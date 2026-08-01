@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "395993702197",
+    "project_id": "ntfms2026",
+    "storage_bucket": "ntfms2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:395993702197:android:e08f72d342dba9fe84f67c",
+        "android_client_info": {
+          "package_name": "lk.gov.ntfms.ntfms_mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "395993702197-ibbim9fnplfh5ik1cu1ccteivrkfo5ua.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "lk.gov.ntfms.ntfms_mobile",
+            "certificate_hash": "d0d815b508e2f6630586b0765d1e90c170adbaf7"
+          }
+        },
+        {
+          "client_id": "395993702197-kcc5jse2eg9e9d3i7r4tsu9kfb564irr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkRLfpW_coMKyEOPlKFLqQRm49562BxHk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "395993702197-kcc5jse2eg9e9d3i7r4tsu9kfb564irr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
