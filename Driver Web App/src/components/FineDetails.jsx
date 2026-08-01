@@ -1,22 +1,28 @@
 import React from 'react';
 import {
-  MapPin, Calendar, User, Car, Badge, Clock,
+  MapPin, Calendar, User, Car, Badge, Clock, Building,
   AlertTriangle, ArrowRight, RotateCcw, CircleDot
 } from 'lucide-react';
 
 export default function FineDetails({ fine, onProceedToPayment, onReset }) {
+  if (!fine) return null;
+
   const isAlreadyPaid = fine.status === 'Paid';
   const isOverdue = fine.status === 'Overdue';
 
   const formatDate = (dateStr) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-LK', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-LK', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return dateStr;
+    }
   };
 
   const formatAmount = (amount) => {
@@ -34,7 +40,7 @@ export default function FineDetails({ fine, onProceedToPayment, onReset }) {
         {/* Status Header */}
         <div style={styles.statusHeader}>
           <div style={styles.statusLeft}>
-            <span style={styles.refLabel}>FINE REFERENCE</span>
+            <span style={styles.refLabel}>FINE REFERENCE NUMBER</span>
             <span style={styles.refNo}>{fine.refNo}</span>
           </div>
           <span className={`badge badge-${fine.status.toLowerCase()}`}>
@@ -48,23 +54,23 @@ export default function FineDetails({ fine, onProceedToPayment, onReset }) {
           ...styles.amountBox,
           ...(isOverdue ? styles.amountBoxOverdue : {}),
         }}>
-          <span style={styles.amountLabel}>Fine Amount</span>
+          <span style={styles.amountLabel}>Fine Amount Payable</span>
           <span style={styles.amount}>{formatAmount(fine.amount)}</span>
           {isOverdue && (
             <div style={styles.overdueWarning}>
               <AlertTriangle size={14} />
-              <span>This fine is overdue. Please settle immediately to avoid further penalties.</span>
+              <span>This fine is overdue (exceeded 14 days). Settle immediately to avoid court escalation.</span>
             </div>
           )}
         </div>
 
         {/* Violation Info */}
         <div style={styles.violationType}>
-          <span style={styles.violationLabel}>Violation</span>
+          <span style={styles.violationLabel}>Offense Category</span>
           <span style={styles.violationName}>{fine.categoryName}</span>
           {fine.penaltyPoints > 0 && (
             <span style={styles.penaltyPoints}>
-              {fine.penaltyPoints} penalty point{fine.penaltyPoints > 1 ? 's' : ''}
+              ⚡ {fine.penaltyPoints} penalty point{fine.penaltyPoints > 1 ? 's' : ''} assigned
             </span>
           )}
         </div>
@@ -73,21 +79,21 @@ export default function FineDetails({ fine, onProceedToPayment, onReset }) {
 
         {/* Details Grid */}
         <div style={styles.detailsGrid} className="stagger-children">
-          <DetailRow icon={User} label="Driver" value={fine.driverName} />
-          <DetailRow icon={Badge} label="License No." value={fine.driverLicense} />
-          <DetailRow icon={Car} label="Vehicle No." value={fine.vehicleNo} />
-          <DetailRow icon={MapPin} label="Location" value={fine.location} />
-          <DetailRow icon={Calendar} label="Issued Date" value={formatDate(fine.issuedAt)} />
-          <DetailRow icon={Badge} label="Issuing Officer" value={fine.officerName} />
+          <DetailRow icon={User} label="Driver Name" value={fine.driverName} />
+          <DetailRow icon={Badge} label="Driving License No." value={fine.driverLicense} />
+          <DetailRow icon={Car} label="Vehicle Registration No." value={fine.vehicleNo} />
+          <DetailRow icon={MapPin} label="Offense Location / District" value={`${fine.location} (${fine.district})`} />
+          <DetailRow icon={Calendar} label="Issue Date & Time" value={formatDate(fine.issuedAt)} />
+          <DetailRow icon={Building} label="Issuing Officer & Station" value={`${fine.officerName} (${fine.station || fine.district + ' Traffic'})`} />
         </div>
 
         {/* Already Paid Notice */}
         {isAlreadyPaid && (
           <>
             <div className="divider" />
-            <div className="alert alert-success">
-              <span style={{ fontSize: '0.9rem' }}>
-                ✅ This fine has already been settled on <strong>{formatDate(fine.paidAt)}</strong> via <strong>{fine.paymentMethod}</strong>. No further payment is required.
+            <div className="alert alert-success" style={{ margin: '0 24px 20px' }}>
+              <span style={{ fontSize: '0.88rem', lineHeight: '1.5' }}>
+                ✅ This traffic fine was settled on <strong>{formatDate(fine.paidAt)}</strong> via <strong>{fine.paymentMethod || 'Web Portal'}</strong>. No further payment is required.
               </span>
             </div>
           </>
@@ -101,7 +107,7 @@ export default function FineDetails({ fine, onProceedToPayment, onReset }) {
               onClick={onProceedToPayment}
               id="proceed-to-payment-btn"
             >
-              Proceed to Payment
+              Proceed to Secure Payment
               <ArrowRight size={18} />
             </button>
           )}
@@ -110,7 +116,7 @@ export default function FineDetails({ fine, onProceedToPayment, onReset }) {
             className="btn btn-ghost btn-full"
             onClick={onReset}
             id="search-another-btn"
-            style={{ marginTop: isAlreadyPaid ? 0 : '4px' }}
+            style={{ marginTop: isAlreadyPaid ? 0 : '8px' }}
           >
             <RotateCcw size={16} />
             Search Another Fine
@@ -137,7 +143,7 @@ function DetailRow({ icon: Icon, label, value }) {
 
 const styles = {
   container: {
-    maxWidth: '520px',
+    maxWidth: '540px',
     margin: '0 auto',
     padding: '0 24px',
   },
@@ -165,7 +171,7 @@ const styles = {
     letterSpacing: '0.06em',
   },
   refNo: {
-    fontSize: '1.05rem',
+    fontSize: '1.1rem',
     fontWeight: '700',
     color: 'var(--text-main)',
     fontFamily: 'monospace',
@@ -226,7 +232,7 @@ const styles = {
     color: 'var(--text-main)',
   },
   penaltyPoints: {
-    fontSize: '0.75rem',
+    fontSize: '0.78rem',
     fontWeight: '600',
     color: 'var(--warning)',
     marginTop: '2px',

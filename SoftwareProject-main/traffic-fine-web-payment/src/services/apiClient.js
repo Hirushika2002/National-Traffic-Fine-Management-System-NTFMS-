@@ -1,0 +1,12 @@
+import axios from 'axios';
+
+const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api',
+  headers: { 'Content-Type': 'application/json' },
+});
+
+export function extractErrorMessage(error, fallback) {
+  return error?.response?.data?.error || fallback;
+}
+
+export default apiClient;

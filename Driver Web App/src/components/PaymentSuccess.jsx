@@ -1,21 +1,27 @@
 import React from 'react';
 import {
   CheckCircle, MessageSquare, CreditCard, FileText,
-  RotateCcw, Printer, Clock, MapPin, User
+  RotateCcw, Printer, Clock, MapPin, User, ShieldCheck
 } from 'lucide-react';
 
 export default function PaymentSuccess({ result, onReset }) {
+  if (!result || !result.fine) return null;
+
   const fine = result.fine;
 
   const formatDate = (dateStr) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-LK', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-LK', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return dateStr;
+    }
   };
 
   const formatAmount = (amount) => {
@@ -32,39 +38,15 @@ export default function PaymentSuccess({ result, onReset }) {
 
   return (
     <div className="animate-float-up" style={styles.container}>
-      {/* Success Animation */}
+      {/* Success Banner */}
       <div style={styles.successAnimation}>
         <div style={styles.checkmarkCircle}>
-          <svg
-            viewBox="0 0 52 52"
-            width="72"
-            height="72"
-            style={styles.checkmarkSvg}
-          >
-            <circle
-              cx="26"
-              cy="26"
-              r="23"
-              fill="none"
-              stroke="var(--success)"
-              strokeWidth="3"
-              style={styles.svgCircle}
-            />
-            <path
-              fill="none"
-              stroke="var(--success)"
-              strokeWidth="3.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M14 27l7 7 16-16"
-              style={styles.svgCheck}
-            />
-          </svg>
+          <ShieldCheck size={64} color="var(--success)" />
         </div>
-        <h2 style={styles.successTitle}>Payment Successful!</h2>
+        <h2 style={styles.successTitle}>Payment Processed Successfully!</h2>
         <p style={styles.successDesc}>
-          Your traffic fine has been settled successfully. The traffic police officer
-          has been notified via SMS.
+          Your traffic fine has been settled with the Sri Lanka Police Central Fine Register.
+          An SMS notification log has been sent to the issuing officer's station.
         </p>
       </div>
 
@@ -78,11 +60,11 @@ export default function PaymentSuccess({ result, onReset }) {
             highlight
           />
           <ConfirmRow
-            label="Transaction ID"
+            label="Transaction Reference"
             value={result.transactionId}
           />
           <ConfirmRow
-            label="Payment Date"
+            label="Payment Timestamp"
             value={formatDate(result.paidAt)}
           />
           <ConfirmRow
@@ -91,51 +73,59 @@ export default function PaymentSuccess({ result, onReset }) {
             highlight
           />
           <ConfirmRow
-            label="Payment Method"
-            value="Web Portal (Online)"
+            label="Payment Method / Channel"
+            value={`${result.paymentMethod || 'CREDIT_CARD'} (WEB)`}
           />
+          {result.payerName && (
+            <ConfirmRow
+              label="Payer Name"
+              value={result.payerName}
+            />
+          )}
         </div>
 
         <div className="divider" style={{ margin: '0 24px' }} />
 
         {/* Fine Details Recap */}
         <div style={styles.recapSection}>
-          <h4 style={styles.recapTitle}>Fine Details</h4>
+          <h4 style={styles.recapTitle}>Fine Details Summary</h4>
           <div style={styles.recapGrid}>
             <RecapItem icon={FileText} label="Reference" value={fine.refNo} />
             <RecapItem icon={User} label="Driver" value={fine.driverName} />
             <RecapItem icon={CreditCard} label="License" value={fine.driverLicense} />
-            <RecapItem icon={MapPin} label="Location" value={fine.location} />
+            <RecapItem icon={MapPin} label="Location" value={`${fine.location}`} />
           </div>
         </div>
 
         <div className="divider" style={{ margin: '0 24px' }} />
 
         {/* SMS Notification Status */}
-        <div style={styles.smsSection}>
-          <div style={styles.smsHeader}>
-            <div style={styles.smsIcon}>
-              <MessageSquare size={18} color="var(--success)" />
+        {result.smsReceipt && (
+          <div style={styles.smsSection}>
+            <div style={styles.smsHeader}>
+              <div style={styles.smsIcon}>
+                <MessageSquare size={18} color="var(--success)" />
+              </div>
+              <div>
+                <h4 style={styles.smsTitle}>Police Officer SMS Log Transmitted</h4>
+                <p style={styles.smsMeta}>
+                  To: <strong>{result.smsReceipt.officer || fine.officerName}</strong> ({result.smsReceipt.to})
+                </p>
+              </div>
+              <span className="badge badge-paid" style={{ marginLeft: 'auto' }}>
+                <CheckCircle size={10} />
+                Delivered
+              </span>
             </div>
-            <div>
-              <h4 style={styles.smsTitle}>SMS Notification Sent</h4>
-              <p style={styles.smsMeta}>
-                To: <strong>{result.smsReceipt.officer}</strong> ({result.smsReceipt.to})
-              </p>
+            <div style={styles.smsBody}>
+              <p style={styles.smsMessage}>{result.smsReceipt.message}</p>
+              <div style={styles.smsTimestamp}>
+                <Clock size={12} />
+                <span>{formatDate(result.smsReceipt.timestamp)}</span>
+              </div>
             </div>
-            <span className="badge badge-paid" style={{ marginLeft: 'auto' }}>
-              <CheckCircle size={10} />
-              Delivered
-            </span>
           </div>
-          <div style={styles.smsBody}>
-            <p style={styles.smsMessage}>{result.smsReceipt.message}</p>
-            <div style={styles.smsTimestamp}>
-              <Clock size={12} />
-              <span>{formatDate(result.smsReceipt.timestamp)}</span>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Action Buttons */}
@@ -155,7 +145,7 @@ export default function PaymentSuccess({ result, onReset }) {
           id="print-receipt-btn"
         >
           <Printer size={16} />
-          Print Receipt
+          Print Official Receipt
         </button>
       </div>
 
@@ -163,8 +153,9 @@ export default function PaymentSuccess({ result, onReset }) {
       <div className="alert alert-info" style={{ marginTop: '16px' }}>
         <MessageSquare size={16} style={{ minWidth: 16, marginTop: 2 }} />
         <div style={{ fontSize: '0.82rem', lineHeight: '1.5' }}>
-          <strong>Next Step:</strong> The traffic police officer has been notified of your payment.
-          You may now retrieve your driving license from the officer who issued the fine.
+          <strong>License Retrieval Notice:</strong> Present this payment confirmation number
+          (<strong>{result.confirmationNumber}</strong>) or printout at the issuing police station
+          ({fine.station || fine.district}) to collect your driving license.
         </div>
       </div>
     </div>
@@ -253,27 +244,13 @@ const styles = {
   },
   successAnimation: {
     textAlign: 'center',
-    marginBottom: '28px',
+    marginBottom: '24px',
   },
   checkmarkCircle: {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '16px',
-    animation: 'successPulse 2s ease-in-out infinite',
-  },
-  checkmarkSvg: {
-    display: 'block',
-  },
-  svgCircle: {
-    strokeDasharray: 200,
-    strokeDashoffset: 200,
-    animation: 'checkmarkCircle 0.6s ease-in-out 0.2s forwards',
-  },
-  svgCheck: {
-    strokeDasharray: 60,
-    strokeDashoffset: 60,
-    animation: 'checkmarkDraw 0.4s ease-in-out 0.6s forwards',
+    marginBottom: '12px',
   },
   successTitle: {
     fontSize: '1.5rem',
@@ -282,10 +259,10 @@ const styles = {
     marginBottom: '8px',
   },
   successDesc: {
-    fontSize: '0.9rem',
+    fontSize: '0.88rem',
     color: 'var(--text-muted)',
     lineHeight: '1.5',
-    maxWidth: '420px',
+    maxWidth: '440px',
     margin: '0 auto',
   },
   card: {

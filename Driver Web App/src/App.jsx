@@ -12,10 +12,10 @@ import { apiService } from './services/api';
  * NTFMS Driver Web Portal — Main Application
  * 
  * Multi-step flow:
- *   1. Fine Lookup (enter ref + category)
- *   2. Fine Details (view violation info)
- *   3. Payment Form (enter card details)
- *   4. Payment Confirmation (success + SMS receipt)
+ *   1. Fine Lookup (enter ref + category OR driver license)
+ *   2. Fine Details (view violation info, issuing officer & status)
+ *   3. Payment Form (enter card & payer details)
+ *   4. Payment Confirmation (success receipt + officer SMS delivery log)
  */
 export default function App() {
   // ── State ────────────────────────────────────────────────
@@ -42,23 +42,15 @@ export default function App() {
 
   // ── Handlers ─────────────────────────────────────────────
 
-  /** Step 1 → Step 2: Look up fine */
-  const handleFineLookup = async (refNo, categoryId) => {
-    setLoading(true);
+  /** Step 1 → Step 2: Handle fine selection */
+  const handleFineFound = (selectedFine) => {
+    setFine(selectedFine);
+    setStep('details');
     setError('');
-
-    try {
-      const result = await apiService.lookupFine(refNo, categoryId);
-      setFine(result);
-      setStep('details');
-    } catch (err) {
-      setError(err.message || 'An unexpected error occurred. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  /** Step 2 → Step 3: Proceed to payment */
+  /** Step 2 → Step 3: Proceed to payment form */
   const handleProceedToPayment = () => {
     setStep('payment');
     setError('');
@@ -66,26 +58,27 @@ export default function App() {
   };
 
   /** Step 3: Process payment */
-  const handlePayment = async (cardDetails) => {
+  const handlePayment = async (paymentDetails) => {
     setLoading(true);
     setError('');
 
     try {
-      const result = await apiService.processPayment(fine.refNo, cardDetails);
+      const result = await apiService.processPayment(fine, paymentDetails);
       setPaymentResult(result);
       setStep('confirmation');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
-      setError(err.message || 'Payment failed. Please check your card details and try again.');
+      setError(err.message || 'Payment processing failed. Please check your card details and try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  /** Back to fine details from payment */
+  /** Back to fine details from payment form */
   const handleBackToDetails = () => {
     setStep('details');
     setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   /** Reset entire flow */
@@ -118,7 +111,7 @@ export default function App() {
       case 'lookup':
         return (
           <FineLookup
-            onFineFound={handleFineLookup}
+            onFineFound={handleFineFound}
             loading={loading}
             error={error}
           />

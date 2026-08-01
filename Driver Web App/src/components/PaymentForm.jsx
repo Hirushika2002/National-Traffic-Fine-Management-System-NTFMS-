@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import {
-  CreditCard, User, Calendar, Lock, ArrowLeft,
-  AlertCircle, ShieldCheck
+  CreditCard, User, Calendar, Lock, ArrowLeft, Phone,
+  AlertCircle, ShieldCheck, Check
 } from 'lucide-react';
-import { formatCardNumber, formatExpiry, detectCardType, luhnValidate, validateExpiry } from '../services/api';
+import {
+  formatCardNumber,
+  formatExpiry,
+  detectCardType,
+  luhnValidate,
+  validateExpiry,
+  validatePhone
+} from '../services/api';
 
 export default function PaymentForm({ fine, onPaymentSuccess, onBack, loading }) {
   const [cardNumber, setCardNumber] = useState('');
-  const [cardHolder, setCardHolder] = useState('');
+  const [payerName, setPayerName] = useState(fine?.driverName || '');
+  const [payerContact, setPayerContact] = useState('0771234567');
+  const [paymentMethod, setPaymentMethod] = useState('CREDIT_CARD');
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
   const [errors, setErrors] = useState({});
@@ -33,11 +42,15 @@ export default function PaymentForm({ fine, onPaymentSuccess, onBack, loading })
     if (!cleanCard || cleanCard.length < 13) {
       newErrors.cardNumber = 'Please enter a valid card number.';
     } else if (!luhnValidate(cleanCard)) {
-      newErrors.cardNumber = 'Invalid card number. Please verify and try again.';
+      newErrors.cardNumber = 'Invalid card number. Please verify your card digits.';
     }
 
-    if (!cardHolder.trim() || cardHolder.trim().length < 3) {
-      newErrors.cardHolder = 'Please enter the cardholder name.';
+    if (!payerName.trim() || payerName.trim().length < 3) {
+      newErrors.payerName = 'Please enter the payer full name.';
+    }
+
+    if (!payerContact.trim() || !validatePhone(payerContact)) {
+      newErrors.payerContact = 'Enter a valid Sri Lankan mobile number (e.g., 0771234567 or +94771234567).';
     }
 
     if (!expiry || expiry.replace(/\s+/g, '').replace('/', '').length < 4) {
@@ -47,7 +60,7 @@ export default function PaymentForm({ fine, onPaymentSuccess, onBack, loading })
     }
 
     if (!cvv || cvv.length < 3) {
-      newErrors.cvv = 'Please enter your 3-digit CVV.';
+      newErrors.cvv = 'Please enter 3 or 4-digit CVV code.';
     }
 
     setErrors(newErrors);
@@ -60,8 +73,11 @@ export default function PaymentForm({ fine, onPaymentSuccess, onBack, loading })
 
     onPaymentSuccess({
       cardNumber: cardNumber.replace(/\s+/g, ''),
-      cardHolderName: cardHolder.trim().toUpperCase(),
-      expiry: expiry.replace(/\s+/g, '').replace('/', ''),
+      payerName: payerName.trim().toUpperCase(),
+      cardHolderName: payerName.trim().toUpperCase(),
+      payerContact: payerContact.trim(),
+      paymentMethod,
+      expiry: expiry.replace(/\s+/g, ''),
       cvv,
     });
   };
@@ -69,7 +85,7 @@ export default function PaymentForm({ fine, onPaymentSuccess, onBack, loading })
   const getCardTypeBadge = () => {
     switch (cardType) {
       case 'visa': return { text: 'VISA', color: '#1A1F71' };
-      case 'mastercard': return { text: 'MC', color: '#EB001B' };
+      case 'mastercard': return { text: 'MASTERCARD', color: '#EB001B' };
       case 'amex': return { text: 'AMEX', color: '#006FCF' };
       default: return null;
     }
@@ -83,11 +99,11 @@ export default function PaymentForm({ fine, onPaymentSuccess, onBack, loading })
       <div className="glass-panel" style={styles.summaryCard}>
         <div style={styles.summaryTop}>
           <div>
-            <span style={styles.summaryLabel}>Paying for Fine</span>
+            <span style={styles.summaryLabel}>PAYING TRAFFIC FINE</span>
             <span style={styles.summaryRef}>{fine.refNo}</span>
           </div>
           <div style={styles.summaryAmount}>
-            <span style={styles.amountLabel}>Amount Due</span>
+            <span style={styles.amountLabel}>Total Due</span>
             <span style={styles.amountValue}>{formatAmount(fine.amount)}</span>
           </div>
         </div>
@@ -101,8 +117,37 @@ export default function PaymentForm({ fine, onPaymentSuccess, onBack, loading })
       {/* Card Payment Form */}
       <form onSubmit={handleSubmit} style={styles.form} id="payment-form">
         <div style={styles.formHeader}>
-          <ShieldCheck size={18} color="var(--success)" />
-          <span style={styles.secureText}>Secure Payment</span>
+          <ShieldCheck size={20} color="var(--success)" />
+          <span style={styles.secureText}>256-bit Encrypted Payment Gateway</span>
+        </div>
+
+        {/* Payment Method Selector */}
+        <div className="input-group">
+          <label className="input-label">Payment Method</label>
+          <div style={styles.methodSelector}>
+            <button
+              type="button"
+              style={{
+                ...styles.methodBtn,
+                ...(paymentMethod === 'CREDIT_CARD' ? styles.methodBtnActive : {})
+              }}
+              onClick={() => setPaymentMethod('CREDIT_CARD')}
+            >
+              <CreditCard size={16} />
+              Credit Card
+            </button>
+            <button
+              type="button"
+              style={{
+                ...styles.methodBtn,
+                ...(paymentMethod === 'DEBIT_CARD' ? styles.methodBtnActive : {})
+              }}
+              onClick={() => setPaymentMethod('DEBIT_CARD')}
+            >
+              <CreditCard size={16} />
+              Debit Card
+            </button>
+          </div>
         </div>
 
         {/* Card Number */}
@@ -135,29 +180,52 @@ export default function PaymentForm({ fine, onPaymentSuccess, onBack, loading })
             )}
           </div>
           {errors.cardNumber && <span className="input-error-text">{errors.cardNumber}</span>}
-          <span className="input-hint">Enter your 16-digit card number</span>
+          <span className="input-hint">16-digit debit or credit card number</span>
         </div>
 
-        {/* Cardholder Name */}
+        {/* Payer Full Name */}
         <div className="input-group">
-          <label className="input-label" htmlFor="card-holder-input">Cardholder Name</label>
+          <label className="input-label" htmlFor="payer-name-input">Payer / Cardholder Full Name</label>
           <div className="input-wrapper">
             <input
-              id="card-holder-input"
+              id="payer-name-input"
               type="text"
-              className={`input-field ${errors.cardHolder ? 'input-error' : ''}`}
-              placeholder="ROHAN SILVA"
-              value={cardHolder}
+              className={`input-field ${errors.payerName ? 'input-error' : ''}`}
+              placeholder="HIRUNI PERERA"
+              value={payerName}
               onChange={(e) => {
-                setCardHolder(e.target.value.toUpperCase());
-                if (errors.cardHolder) setErrors(prev => ({ ...prev, cardHolder: '' }));
+                setPayerName(e.target.value.toUpperCase());
+                if (errors.payerName) setErrors(prev => ({ ...prev, payerName: '' }));
               }}
               disabled={loading}
               autoComplete="cc-name"
             />
             <User size={18} className="input-icon" />
           </div>
-          {errors.cardHolder && <span className="input-error-text">{errors.cardHolder}</span>}
+          {errors.payerName && <span className="input-error-text">{errors.payerName}</span>}
+        </div>
+
+        {/* Payer Contact Phone (For Officer SMS Notification) */}
+        <div className="input-group">
+          <label className="input-label" htmlFor="payer-contact-input">Payer Mobile Phone (For SMS Notification)</label>
+          <div className="input-wrapper">
+            <input
+              id="payer-contact-input"
+              type="tel"
+              className={`input-field ${errors.payerContact ? 'input-error' : ''}`}
+              placeholder="0771234567"
+              value={payerContact}
+              onChange={(e) => {
+                setPayerContact(e.target.value);
+                if (errors.payerContact) setErrors(prev => ({ ...prev, payerContact: '' }));
+              }}
+              disabled={loading}
+              autoComplete="tel"
+            />
+            <Phone size={18} className="input-icon" />
+          </div>
+          {errors.payerContact && <span className="input-error-text">{errors.payerContact}</span>}
+          <span className="input-hint">Used for sending SMS verification logs to issuing officer</span>
         </div>
 
         {/* Expiry + CVV Row */}
@@ -186,7 +254,7 @@ export default function PaymentForm({ fine, onPaymentSuccess, onBack, loading })
           </div>
 
           <div className="input-group" style={{ flex: 1 }}>
-            <label className="input-label" htmlFor="cvv-input">CVV</label>
+            <label className="input-label" htmlFor="cvv-input">Security CVV</label>
             <div className="input-wrapper">
               <input
                 id="cvv-input"
@@ -221,12 +289,12 @@ export default function PaymentForm({ fine, onPaymentSuccess, onBack, loading })
           {loading ? (
             <>
               <span className="spinner"></span>
-              Processing Payment...
+              Processing Transaction...
             </>
           ) : (
             <>
               <Lock size={16} />
-              Pay Now {formatAmount(fine.amount)}
+              Pay {formatAmount(fine.amount)} Now
             </>
           )}
         </button>
@@ -248,8 +316,8 @@ export default function PaymentForm({ fine, onPaymentSuccess, onBack, loading })
       <div style={styles.securityNotice}>
         <Lock size={14} color="var(--text-dark)" />
         <span style={styles.securityText}>
-          Your card details are processed securely and are never stored on our servers.
-          All transactions are encrypted end-to-end.
+          Your card details are processed securely and never persisted in raw form.
+          Official receipts are issued in real-time to Sri Lanka Police Central Fine Database.
         </span>
       </div>
     </div>
@@ -258,7 +326,7 @@ export default function PaymentForm({ fine, onPaymentSuccess, onBack, loading })
 
 const styles = {
   container: {
-    maxWidth: '520px',
+    maxWidth: '540px',
     margin: '0 auto',
     padding: '0 24px',
   },
@@ -337,6 +405,31 @@ const styles = {
     fontWeight: '600',
     color: 'var(--success)',
   },
+  methodSelector: {
+    display: 'flex',
+    gap: '8px',
+  },
+  methodBtn: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    padding: '10px 14px',
+    border: '1px solid var(--border-subtle)',
+    borderRadius: '8px',
+    background: 'rgba(255, 255, 255, 0.03)',
+    color: 'var(--text-muted)',
+    fontSize: '0.82rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  methodBtnActive: {
+    background: 'rgba(212, 175, 55, 0.1)',
+    borderColor: 'var(--accent)',
+    color: 'var(--accent)',
+  },
   splitRow: {
     display: 'flex',
     gap: '16px',
@@ -360,7 +453,7 @@ const styles = {
     padding: '0 4px',
   },
   securityText: {
-    fontSize: '0.7rem',
+    fontSize: '0.72rem',
     color: 'var(--text-dark)',
     lineHeight: '1.5',
   },

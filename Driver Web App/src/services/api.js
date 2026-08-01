@@ -1,12 +1,11 @@
 /**
  * NTFMS Driver Portal — API Service Layer
  * 
- * Shares the same localStorage keys as the Admin Portal so that
- * payments processed here are immediately visible in the admin dashboard.
- * 
- * When a real backend is deployed, replace localStorage calls with
- * fetch() requests to the REST API endpoints.
+ * Connects directly to the NTFMS Node.js / Prisma Backend REST API (http://localhost:4000/api).
+ * Falls back to local storage mock data if the backend server is unreachable.
  */
+
+const API_BASE_URL = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://localhost:4000/api';
 
 const STORAGE_KEY_FINES = 'ntfms_fines';
 const STORAGE_KEY_CATEGORIES = 'ntfms_categories';
@@ -20,24 +19,27 @@ export const DISTRICTS = [
   'Moneragala', 'Ratnapura', 'Kegalle'
 ];
 
-// ── Initial Fine Categories ────────────────────────────────────
+// ── Initial Fine Categories (Mock Fallback) ────────────────────
 const INITIAL_CATEGORIES = [
-  { id: 'CAT-01', name: 'Speeding', amount: 3000, penaltyPoints: 3 },
-  { id: 'CAT-02', name: 'Reckless Driving', amount: 5000, penaltyPoints: 5 },
-  { id: 'CAT-03', name: 'Drunk Driving', amount: 10000, penaltyPoints: 8 },
-  { id: 'CAT-04', name: 'No Valid Driving License', amount: 8000, penaltyPoints: 0 },
-  { id: 'CAT-05', name: 'Traffic Light Violation', amount: 2500, penaltyPoints: 2 },
-  { id: 'CAT-06', name: 'Wrong-way Driving', amount: 3000, penaltyPoints: 3 },
-  { id: 'CAT-07', name: 'Seatbelt Violation', amount: 1500, penaltyPoints: 1 },
-  { id: 'CAT-08', name: 'Mobile Phone Use While Driving', amount: 4000, penaltyPoints: 4 },
-  { id: 'CAT-09', name: 'Invalid Insurance/Revenue License', amount: 5000, penaltyPoints: 0 }
+  { id: 1, code: 'CAT-01', name: 'Speeding', amount: 3000, penaltyPoints: 3 },
+  { id: 2, code: 'CAT-02', name: 'Reckless Driving', amount: 5000, penaltyPoints: 5 },
+  { id: 3, code: 'CAT-03', name: 'Drunk Driving', amount: 10000, penaltyPoints: 8 },
+  { id: 4, code: 'CAT-04', name: 'No Valid Driving License', amount: 8000, penaltyPoints: 0 },
+  { id: 5, code: 'CAT-05', name: 'Traffic Light Violation', amount: 2500, penaltyPoints: 2 },
+  { id: 6, code: 'CAT-06', name: 'Wrong-way Driving', amount: 3000, penaltyPoints: 3 },
+  { id: 7, code: 'CAT-07', name: 'Seatbelt Violation', amount: 1500, penaltyPoints: 1 },
+  { id: 8, code: 'CAT-08', name: 'Mobile Phone Use While Driving', amount: 4000, penaltyPoints: 4 },
+  { id: 9, code: 'CAT-09', name: 'Invalid Insurance/Revenue License', amount: 5000, penaltyPoints: 0 }
 ];
 
-// ── Seed Data ──────────────────────────────────────────────────
+// ── Seed Data (Mock Fallback) ──────────────────────────────────
 const SEED_FINES = [
   {
+    id: 1,
     refNo: 'SLP-2026-9812',
     category: 'CAT-01',
+    categoryId: 1,
+    categoryName: 'Speeding',
     amount: 3000,
     driverName: 'Hiruni Perera',
     driverLicense: 'B9823412',
@@ -54,8 +56,11 @@ const SEED_FINES = [
     smsSent: true
   },
   {
+    id: 2,
     refNo: 'SLP-2026-9813',
     category: 'CAT-03',
+    categoryId: 3,
+    categoryName: 'Drunk Driving',
     amount: 10000,
     driverName: 'Mohamed Aslam',
     driverLicense: 'B8234912',
@@ -72,8 +77,11 @@ const SEED_FINES = [
     smsSent: true
   },
   {
+    id: 3,
     refNo: 'SLP-2026-9814',
     category: 'CAT-02',
+    categoryId: 2,
+    categoryName: 'Reckless Driving',
     amount: 5000,
     driverName: 'Suresh Kumar',
     driverLicense: 'B7123490',
@@ -90,8 +98,11 @@ const SEED_FINES = [
     smsSent: false
   },
   {
+    id: 4,
     refNo: 'SLP-2026-9815',
     category: 'CAT-05',
+    categoryId: 5,
+    categoryName: 'Traffic Light Violation',
     amount: 2500,
     driverName: 'Nipuna De Silva',
     driverLicense: 'B9934102',
@@ -108,8 +119,11 @@ const SEED_FINES = [
     smsSent: true
   },
   {
+    id: 5,
     refNo: 'SLP-2026-9816',
     category: 'CAT-07',
+    categoryId: 7,
+    categoryName: 'Seatbelt Violation',
     amount: 1500,
     driverName: 'Anil Wickramasinghe',
     driverLicense: 'B8543210',
@@ -126,8 +140,11 @@ const SEED_FINES = [
     smsSent: false
   },
   {
+    id: 6,
     refNo: 'SLP-2026-9817',
     category: 'CAT-08',
+    categoryId: 8,
+    categoryName: 'Mobile Phone Use While Driving',
     amount: 4000,
     driverName: 'Priya Ranasinghe',
     driverLicense: 'B9123847',
@@ -142,192 +159,21 @@ const SEED_FINES = [
     paymentMethod: null,
     paidAt: null,
     smsSent: false
-  },
-  {
-    refNo: 'SLP-2026-9818',
-    category: 'CAT-01',
-    amount: 3000,
-    driverName: 'Kasun Rathnayake',
-    driverLicense: 'B6677882',
-    vehicleNo: 'CP-CAD-7890',
-    officerId: 'OF-2341',
-    officerName: 'Sgt. Jayawardene',
-    officerPhone: '+94723344556',
-    district: 'Matale',
-    location: 'Kandy Road, Matale',
-    issuedAt: '2026-06-12T16:50:00Z',
-    status: 'Paid',
-    paymentMethod: 'Mobile App',
-    paidAt: '2026-06-12T16:52:00Z',
-    smsSent: true
-  },
-  {
-    refNo: 'SLP-2026-9819',
-    category: 'CAT-06',
-    amount: 3000,
-    driverName: 'Saman Edirisinghe',
-    driverLicense: 'B4433119',
-    vehicleNo: 'SG-KX-5678',
-    officerId: 'OF-9011',
-    officerName: 'Sgt. Rathnayake',
-    officerPhone: '+94759900112',
-    district: 'Ratnapura',
-    location: 'Colombo Rd, Ratnapura',
-    issuedAt: '2026-06-09T09:30:00Z',
-    status: 'Paid',
-    paymentMethod: 'Web Portal',
-    paidAt: '2026-06-10T10:15:00Z',
-    smsSent: true
-  },
-  {
-    refNo: 'SLP-2026-9820',
-    category: 'CAT-04',
-    amount: 8000,
-    driverName: 'Devinda Alwis',
-    driverLicense: 'B3388441',
-    vehicleNo: 'WP-LH-2211',
-    officerId: 'OF-1022',
-    officerName: 'IP. Senanayake',
-    officerPhone: '+94775566778',
-    district: 'Kurunegala',
-    location: 'Dambulla Rd, Kurunegala',
-    issuedAt: '2026-06-05T15:20:00Z',
-    status: 'Overdue',
-    paymentMethod: null,
-    paidAt: null,
-    smsSent: false
-  },
-  {
-    refNo: 'SLP-2026-9821',
-    category: 'CAT-02',
-    amount: 5000,
-    driverName: 'Nuwan Samaranayake',
-    driverLicense: 'B8844220',
-    vehicleNo: 'WP-PA-8822',
-    officerId: 'OF-8821',
-    officerName: 'Sgt. Bandara',
-    officerPhone: '+94771234567',
-    district: 'Colombo',
-    location: 'Borella Junction, Colombo 08',
-    issuedAt: '2026-06-13T18:30:00Z',
-    status: 'Pending',
-    paymentMethod: null,
-    paidAt: null,
-    smsSent: false
-  },
-  {
-    refNo: 'SLP-2026-9822',
-    category: 'CAT-09',
-    amount: 5000,
-    driverName: 'Chathura Gunawardena',
-    driverLicense: 'B6622110',
-    vehicleNo: 'UP-LD-4422',
-    officerId: 'OF-7788',
-    officerName: 'Sgt. Herath',
-    officerPhone: '+94711122233',
-    district: 'Badulla',
-    location: 'Passara Rd, Badulla',
-    issuedAt: '2026-06-11T11:45:00Z',
-    status: 'Paid',
-    paymentMethod: 'Web Portal',
-    paidAt: '2026-06-12T14:30:00Z',
-    smsSent: true
-  },
-  {
-    refNo: 'SLP-2026-9823',
-    category: 'CAT-01',
-    amount: 3000,
-    driverName: 'Nisansala Jayasinghe',
-    driverLicense: 'B9090123',
-    vehicleNo: 'WP-CBA-1122',
-    officerId: 'OF-5566',
-    officerName: 'Sgt. Fernando',
-    officerPhone: '+94778899100',
-    district: 'Gampaha',
-    location: 'Kadawatha Expressway Exit',
-    issuedAt: '2026-06-13T14:15:00Z',
-    status: 'Paid',
-    paymentMethod: 'Mobile App',
-    paidAt: '2026-06-13T14:17:00Z',
-    smsSent: true
   }
 ];
 
-// ── Generate Historical Fines (matching admin portal logic) ────
-const generateHistoricalFines = () => {
-  const fines = [];
-  const startDay = new Date('2026-03-01T00:00:00Z');
-  const endDay = new Date('2026-06-09T23:59:59Z');
-  const diffTime = Math.abs(endDay - startDay);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  const names = ['Ravi', 'Tharindu', 'Shenal', 'Mahela', 'Kusal', 'Kavindi', 'Dilshan', 'Jehan', 'Ruwan', 'Dinuka', 'Shalini', 'Ashok'];
-  const lastnames = ['Silva', 'Fernando', 'Wickramasinghe', 'Gunarathne', 'Dissanayake', 'Alwis', 'Bandara', 'Perera', 'Jayasekara', 'Cooray'];
-  const vehicles = ['WP-CAR-1234', 'WP-CAD-8899', 'WP-PE-4455', 'CP-CAB-1020', 'SP-KX-4829', 'WP-LL-9921', 'NP-CAS-1122', 'EP-LD-8891'];
-
-  const officers = [
-    { id: 'OF-8821', name: 'Sgt. Bandara', phone: '+94771234567' },
-    { id: 'OF-1092', name: 'IP. Wijesinghe', phone: '+94719876543' },
-    { id: 'OF-3401', name: 'IP. Kumara', phone: '+94701122334' },
-    { id: 'OF-5566', name: 'Sgt. Fernando', phone: '+94778899100' }
-  ];
-
-  for (let i = 0; i < 50; i++) {
-    const randomDayOffset = Math.floor(Math.random() * diffDays);
-    const issueDate = new Date(startDay.getTime() + randomDayOffset * 24 * 60 * 60 * 1000 + Math.random() * 12 * 60 * 60 * 1000);
-    const cat = INITIAL_CATEGORIES[Math.floor(Math.random() * INITIAL_CATEGORIES.length)];
-    const district = DISTRICTS[Math.floor(Math.random() * 8)];
-    const driver = `${names[Math.floor(Math.random() * names.length)]} ${lastnames[Math.floor(Math.random() * lastnames.length)]}`;
-    const license = 'B' + Math.floor(10000000 + Math.random() * 90000000);
-    const vehicle = vehicles[Math.floor(Math.random() * vehicles.length)];
-    const officer = officers[Math.floor(Math.random() * officers.length)];
-
-    const isPaid = Math.random() > 0.15;
-    const isOverdue = !isPaid && (new Date() - issueDate > 14 * 24 * 60 * 60 * 1000);
-    const status = isPaid ? 'Paid' : (isOverdue ? 'Overdue' : 'Pending');
-
-    const paymentMethod = isPaid ? (Math.random() > 0.4 ? 'Web Portal' : 'Mobile App') : null;
-    const paidAt = isPaid ? new Date(issueDate.getTime() + Math.random() * 48 * 60 * 60 * 1000).toISOString() : null;
-
-    fines.push({
-      refNo: `SLP-2026-${1000 + i}`,
-      category: cat.id,
-      amount: cat.amount,
-      driverName: driver,
-      driverLicense: license,
-      vehicleNo: vehicle,
-      officerId: officer.id,
-      officerName: officer.name,
-      officerPhone: officer.phone,
-      district,
-      location: `${district} Town Area`,
-      issuedAt: issueDate.toISOString(),
-      status,
-      paymentMethod,
-      paidAt,
-      smsSent: isPaid
-    });
-  }
-
-  return fines;
-};
-
-// ── Initialize Database (seeds if empty) ───────────────────────
+// ── Initialize Local Storage DB ────────────────────────────────
 const initializeDatabase = () => {
   if (!localStorage.getItem(STORAGE_KEY_CATEGORIES)) {
     localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(INITIAL_CATEGORIES));
   }
   if (!localStorage.getItem(STORAGE_KEY_FINES)) {
-    const baseFines = [...SEED_FINES];
-    const historicalFines = generateHistoricalFines();
-    localStorage.setItem(STORAGE_KEY_FINES, JSON.stringify([...baseFines, ...historicalFines]));
+    localStorage.setItem(STORAGE_KEY_FINES, JSON.stringify(SEED_FINES));
   }
 };
-
-// Execute on import
 initializeDatabase();
 
-// ── Luhn Algorithm — Credit Card Validation ────────────────────
+// ── Card & Input Helpers ───────────────────────────────────────
 export const luhnValidate = (cardNumber) => {
   const digits = cardNumber.replace(/\s+/g, '').replace(/-/g, '');
   if (!/^\d{13,19}$/.test(digits)) return false;
@@ -348,7 +194,6 @@ export const luhnValidate = (cardNumber) => {
   return sum % 10 === 0;
 };
 
-// ── Detect Card Type by Number ─────────────────────────────────
 export const detectCardType = (number) => {
   const cleaned = number.replace(/\s+/g, '');
   if (/^4/.test(cleaned)) return 'visa';
@@ -357,22 +202,19 @@ export const detectCardType = (number) => {
   return 'unknown';
 };
 
-// ── Format Card Number with Spaces ─────────────────────────────
 export const formatCardNumber = (value) => {
   const cleaned = value.replace(/\D/g, '').slice(0, 16);
   return cleaned.replace(/(\d{4})(?=\d)/g, '$1 ');
 };
 
-// ── Format Expiry MM/YY ────────────────────────────────────────
 export const formatExpiry = (value) => {
   const cleaned = value.replace(/\D/g, '').slice(0, 4);
   if (cleaned.length >= 3) {
-    return cleaned.slice(0, 2) + ' / ' + cleaned.slice(2);
+    return cleaned.slice(0, 2) + '/' + cleaned.slice(2);
   }
   return cleaned;
 };
 
-// ── Validate Expiry ────────────────────────────────────────────
 export const validateExpiry = (expiry) => {
   const cleaned = expiry.replace(/\s+/g, '').replace('/', '');
   if (cleaned.length !== 4) return false;
@@ -383,9 +225,60 @@ export const validateExpiry = (expiry) => {
   if (month < 1 || month > 12) return false;
   
   const now = new Date();
-  const expDate = new Date(year, month); // First day of NEXT month
+  const expDate = new Date(year, month);
   return expDate > now;
 };
+
+export const validatePhone = (phone) => {
+  return /^(?:\+94|0)?7\d{8}$/.test(phone.trim());
+};
+
+// ── Backend Response Transformer ──────────────────────────────
+function transformBackendFine(raw) {
+  if (!raw) return null;
+
+  const categoryName = raw.category?.description || raw.category?.code || raw.categoryName || 'Traffic Fine';
+  const categoryCode = raw.category?.code || raw.category || `CAT-0${raw.categoryId || 1}`;
+  const amount = Number(raw.amount || raw.category?.baseAmount || 0);
+
+  let status = 'Pending';
+  if (raw.status === 'PAID' || raw.status === 'Paid') {
+    status = 'Paid';
+  } else if (raw.status === 'OVERDUE' || raw.status === 'Overdue') {
+    status = 'Overdue';
+  } else {
+    // Check if overdue by date (> 14 days)
+    const issueTime = new Date(raw.issueDate || raw.issuedAt).getTime();
+    if (Date.now() - issueTime > 14 * 24 * 60 * 60 * 1000) {
+      status = 'Overdue';
+    }
+  }
+
+  return {
+    id: raw.id,
+    refNo: raw.referenceNo || raw.refNo,
+    categoryId: raw.categoryId || raw.category?.id || 1,
+    category: categoryCode,
+    categoryName,
+    amount,
+    penaltyPoints: raw.category?.penaltyPoints || raw.penaltyPoints || 2,
+    driverName: raw.driverName || 'Motorist',
+    driverLicense: raw.driverLicenseNo || raw.driverLicense || 'N/A',
+    vehicleNo: raw.vehicleNo || 'N/A',
+    officerId: raw.officer?.badgeNo || raw.officerId || 'OF-1001',
+    officerName: raw.officer?.fullName || raw.officerName || 'Traffic Police Officer',
+    officerPhone: raw.officer?.phoneNo || raw.officerPhone || '+94770000000',
+    station: raw.officer?.station || 'Police Station',
+    district: raw.district?.name || raw.district || 'Colombo',
+    location: raw.location || `${raw.district?.name || raw.district || 'Colombo'} Traffic Division`,
+    issuedAt: raw.issueDate || raw.issuedAt || new Date().toISOString(),
+    status,
+    paymentMethod: raw.payment?.paymentMethod || raw.paymentMethod || null,
+    paidAt: raw.payment?.paidAt || raw.paidAt || null,
+    smsSent: Boolean(raw.payment || raw.smsSent),
+    raw
+  };
+}
 
 // ══════════════════════════════════════════════════════════════
 //  PUBLIC API SERVICE
@@ -393,108 +286,197 @@ export const validateExpiry = (expiry) => {
 
 export const apiService = {
   /**
-   * Look up a fine by reference number and category ID.
-   * Simulates GET /api/fines?referenceNumber=X&categoryId=Y
+   * Look up fine by reference number and category ID.
    */
-  lookupFine: async (referenceNumber, categoryId) => {
-    // Simulate network latency
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const fines = JSON.parse(localStorage.getItem(STORAGE_KEY_FINES)) || [];
+  lookupFine: async (referenceNumber, categoryInput) => {
     const refUpper = referenceNumber.trim().toUpperCase();
-    const catUpper = categoryId.trim().toUpperCase();
+    
+    // Parse numeric category ID if given as CAT-02 -> 2 or 2 -> 2
+    let numCatId = parseInt(categoryInput, 10);
+    if (isNaN(numCatId) && typeof categoryInput === 'string') {
+      const match = categoryInput.match(/\d+/);
+      if (match) numCatId = parseInt(match[0], 10);
+    }
+    if (isNaN(numCatId)) numCatId = 1;
 
-    const fine = fines.find(
-      f => f.refNo.toUpperCase() === refUpper && f.category.toUpperCase() === catUpper
-    );
-
-    if (!fine) {
-      throw {
-        code: 404,
-        message: 'Fine not found. Please verify the Reference Number and Category ID from your fine sheet and try again.'
-      };
+    // Try REST Backend endpoint GET /api/fines/lookup
+    try {
+      const url = `${API_BASE_URL}/fines/lookup?referenceNo=${encodeURIComponent(refUpper)}&categoryId=${numCatId}`;
+      const response = await fetch(url, { method: 'GET' });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return transformBackendFine(data);
+      } else if (response.status === 404) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'No matching fine found for the given reference number and category.');
+      }
+    } catch (err) {
+      if (err.message && err.message.includes('No matching fine found')) {
+        throw err;
+      }
+      console.warn('[API Service] Backend lookup API failed or unreachable. Falling back to local storage.', err);
     }
 
-    // Resolve category name
-    const categories = JSON.parse(localStorage.getItem(STORAGE_KEY_CATEGORIES)) || [];
-    const cat = categories.find(c => c.id === fine.category);
+    // Fallback: Local Storage Lookup
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    const fines = JSON.parse(localStorage.getItem(STORAGE_KEY_FINES)) || [];
+    const catUpper = String(categoryInput).trim().toUpperCase();
 
-    return {
-      ...fine,
-      categoryName: cat ? cat.name : 'Unknown Category',
-      penaltyPoints: cat ? cat.penaltyPoints : 0
-    };
+    const fine = fines.find((f) => {
+      const matchRef = f.refNo.toUpperCase() === refUpper;
+      const matchCat =
+        String(f.category).toUpperCase() === catUpper ||
+        String(f.categoryId) === String(numCatId) ||
+        `CAT-0${f.categoryId}` === catUpper;
+      return matchRef && matchCat;
+    });
+
+    if (!fine) {
+      throw new Error('Fine not found. Please verify the Reference Number and Category ID from your fine sheet.');
+    }
+
+    return transformBackendFine(fine);
+  },
+
+  /**
+   * Look up all fines by Driver's License Number.
+   */
+  lookupByDriverLicense: async (licenseNo) => {
+    const licUpper = licenseNo.trim().toUpperCase();
+
+    // Try REST Backend endpoint GET /api/fines/driver/:licenseNo
+    try {
+      const url = `${API_BASE_URL}/fines/driver/${encodeURIComponent(licUpper)}`;
+      const response = await fetch(url, { method: 'GET' });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data) && data.length > 0) {
+          return data.map(transformBackendFine);
+        } else {
+          throw new Error(`No traffic fines found for Driver License No: ${licUpper}`);
+        }
+      }
+    } catch (err) {
+      if (err.message && err.message.includes('No traffic fines found')) {
+        throw err;
+      }
+      console.warn('[API Service] Driver license lookup API unreachable. Falling back to local storage.', err);
+    }
+
+    // Fallback: Local Storage
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    const fines = JSON.parse(localStorage.getItem(STORAGE_KEY_FINES)) || [];
+    const matched = fines.filter((f) => f.driverLicense.toUpperCase() === licUpper);
+
+    if (matched.length === 0) {
+      throw new Error(`No traffic fines registered under Driving License: ${licUpper}`);
+    }
+
+    return matched.map(transformBackendFine);
   },
 
   /**
    * Process payment for a fine.
-   * Simulates POST /api/payments
+   * Sends POST to /api/payments on the backend.
    */
-  processPayment: async (refNo, cardDetails) => {
-    // Simulate bank processing latency
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+  processPayment: async (fine, paymentDetails) => {
+    const cleanCard = paymentDetails.cardNumber.replace(/\s+/g, '');
+    const cleanExpiry = paymentDetails.expiry.replace(/\s+/g, '');
+
+    // Format expiry for backend (e.g., "12/28")
+    let formattedExpiry = cleanExpiry;
+    if (cleanExpiry.length === 4 && !cleanExpiry.includes('/')) {
+      formattedExpiry = `${cleanExpiry.slice(0, 2)}/${cleanExpiry.slice(2)}`;
+    }
+
+    const payload = {
+      fineId: Number(fine.id || fine.raw?.id || 1),
+      amount: Number(fine.amount),
+      paymentMethod: paymentDetails.paymentMethod || 'CREDIT_CARD',
+      channel: 'WEB',
+      payerName: (paymentDetails.payerName || paymentDetails.cardHolderName || fine.driverName).trim().toUpperCase(),
+      payerContact: paymentDetails.payerContact ? paymentDetails.payerContact.trim() : '0771234567',
+      cardNumber: cleanCard,
+      expiryDate: formattedExpiry,
+      cvv: paymentDetails.cvv
+    };
+
+    // Try REST Backend endpoint POST /api/payments
+    try {
+      const response = await fetch(`${API_BASE_URL}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        const paymentRes = await response.json();
+        
+        return {
+          success: true,
+          confirmationNumber: `CONF-2026-${paymentRes.id || Math.floor(10000 + Math.random() * 90000)}`,
+          transactionId: paymentRes.transactionRef || `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
+          paidAt: paymentRes.paidAt || new Date().toISOString(),
+          amount: Number(paymentRes.amountPaid || fine.amount),
+          paymentMethod: paymentRes.paymentMethod || 'CREDIT_CARD',
+          payerName: paymentRes.payerName || payload.payerName,
+          payerContact: paymentRes.payerContact || payload.payerContact,
+          smsReceipt: {
+            to: fine.officerPhone,
+            officer: fine.officerName,
+            message: `[NTFMS CONFIRMATION] Fine Ref ${fine.refNo} for License ${fine.driverLicense} has been SETTLED successfully via Web Portal. You may return the driving license to the motorist.`,
+            timestamp: paymentRes.paidAt || new Date().toISOString(),
+            status: 'delivered'
+          },
+          fine: {
+            ...fine,
+            status: 'Paid',
+            paidAt: paymentRes.paidAt || new Date().toISOString(),
+            paymentMethod: 'Web Portal'
+          }
+        };
+      } else {
+        const errJson = await response.json().catch(() => ({}));
+        if (errJson.error) {
+          throw new Error(errJson.error);
+        }
+      }
+    } catch (err) {
+      if (err.message && !err.message.includes('fetch')) {
+        throw err;
+      }
+      console.warn('[API Service] Payment API unreachable. Falling back to local storage simulation.', err);
+    }
+
+    // Fallback: Local Storage Payment Processing
+    await new Promise((resolve) => setTimeout(resolve, 1200));
 
     const fines = JSON.parse(localStorage.getItem(STORAGE_KEY_FINES)) || [];
-    const idx = fines.findIndex(f => f.refNo === refNo);
+    const idx = fines.findIndex((f) => f.refNo === fine.refNo || f.id === fine.id);
 
-    if (idx === -1) {
-      throw {
-        code: 404,
-        message: `Fine reference ${refNo} not found in the national register.`
-      };
+    if (idx !== -1) {
+      fines[idx].status = 'Paid';
+      fines[idx].paymentMethod = 'Web Portal';
+      fines[idx].paidAt = new Date().toISOString();
+      fines[idx].smsSent = true;
+      localStorage.setItem(STORAGE_KEY_FINES, JSON.stringify(fines));
     }
 
-    if (fines[idx].status === 'Paid') {
-      throw {
-        code: 409,
-        message: `Fine ${refNo} has already been settled. No duplicate payment is required.`
-      };
-    }
-
-    // Validate card with Luhn
-    const cleanCard = cardDetails.cardNumber.replace(/\s+/g, '');
-    if (!luhnValidate(cleanCard)) {
-      throw {
-        code: 400,
-        message: 'Invalid card number. Please check your card details and try again.'
-      };
-    }
-
-    // Validate expiry
-    if (!validateExpiry(cardDetails.expiry)) {
-      throw {
-        code: 400,
-        message: 'Card has expired or expiry date is invalid.'
-      };
-    }
-
-    // Update fine status in localStorage
-    fines[idx].status = 'Paid';
-    fines[idx].paymentMethod = 'Web Portal';
-    fines[idx].paidAt = new Date().toISOString();
-    fines[idx].smsSent = true;
-
-    localStorage.setItem(STORAGE_KEY_FINES, JSON.stringify(fines));
-
-    // Generate confirmation details
-    const confirmationNumber = `CONF-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+    const confirmationNumber = `CONF-2026-${Math.floor(10000 + Math.random() * 90000)}`;
     const transactionId = `TXN-${Math.floor(100000 + Math.random() * 900000)}`;
-
-    // Simulate SMS to traffic police officer
-    const fine = fines[idx];
     const smsMessage = `[NTFMS CONFIRMATION] Fine Ref ${fine.refNo} for License ${fine.driverLicense} has been SETTLED successfully via Web Portal. You may return the driving license to the motorist.`;
-
-    console.log(
-      `%c[SMS TRANSMITTED] To: ${fine.officerName} (${fine.officerPhone})\nMessage: ${smsMessage}`,
-      'background: #002244; color: #d4af37; padding: 8px; font-weight: bold; border-radius: 4px;'
-    );
 
     return {
       success: true,
       confirmationNumber,
       transactionId,
-      paidAt: fine.paidAt,
+      paidAt: new Date().toISOString(),
       amount: fine.amount,
+      paymentMethod: payload.paymentMethod,
+      payerName: payload.payerName,
+      payerContact: payload.payerContact,
       smsReceipt: {
         to: fine.officerPhone,
         officer: fine.officerName,
@@ -502,7 +484,12 @@ export const apiService = {
         timestamp: new Date().toISOString(),
         status: 'delivered'
       },
-      fine
+      fine: {
+        ...fine,
+        status: 'Paid',
+        paidAt: new Date().toISOString(),
+        paymentMethod: 'Web Portal'
+      }
     };
   },
 
@@ -510,6 +497,6 @@ export const apiService = {
    * Get all fine categories
    */
   getCategories: () => {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY_CATEGORIES)) || [];
+    return JSON.parse(localStorage.getItem(STORAGE_KEY_CATEGORIES)) || INITIAL_CATEGORIES;
   }
 };
