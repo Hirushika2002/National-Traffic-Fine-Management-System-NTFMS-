@@ -23,4 +23,10 @@ module.exports = {
     twilioAuthToken: process.env.TWILIO_AUTH_TOKEN,
     twilioPhoneNumber: process.env.TWILIO_PHONE_NUMBER,
   },
+  rateLimit: {
+    lookupWindowMs: Number(process.env.RATE_LIMIT_LOOKUP_WINDOW_MS) || 60_000,
+    lookupMax: Number(process.env.RATE_LIMIT_LOOKUP_MAX) || 10,
+    authWindowMs: Number(process.env.RATE_LIMIT_AUTH_WINDOW_MS) || 900_000,
+    authMax: Number(process.env.RATE_LIMIT_AUTH_MAX) || 5,
+  },
 };
